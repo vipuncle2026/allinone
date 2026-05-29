@@ -1,0 +1,134 @@
+/* ── All-in-One 全局样式 ── */
+
+/* 重置与基础 */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  font-size: var(--font-base);
+  color: var(--text-primary);
+  background: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── 滚动条美化 ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* ── 链接 ── */
+a { color: var(--primary); text-decoration: none; }
+a:hover { color: var(--primary-hover); }
+
+/* ── 通用工具类 ── */
+.text-primary   { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary  { color: var(--text-tertiary); }
+.text-up        { color: var(--color-up); }
+.text-down      { color: var(--color-down); }
+.text-flat      { color: var(--color-flat); }
+.font-bold      { font-weight: 700; }
+.text-ellipsis  { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── 通用卡片样式 ── */
+.stat-card {
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  color: var(--text-white);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+}
+.stat-card .stat-label {
+  font-size: var(--font-sm);
+  opacity: 0.85;
+  margin-bottom: var(--spacing-xs);
+}
+.stat-card .stat-val {
+  font-size: var(--font-2xl);
+  font-weight: 800;
+  line-height: 1.2;
+}
+.stat-card .stat-unit {
+  font-size: var(--font-xs);
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+/* ── 图表卡片 ── */
+.chart-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+}
+.chart-card .chart-title {
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-md);
+}
+.chart-card .chart-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+/* ── Ant Design 覆写 ── */
+.ant-card {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-color: var(--border-light) !important;
+}
+.ant-card:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+.ant-table {
+  border-radius: var(--radius-lg) !important;
+}
+.ant-table-thead > tr > th {
+  background: var(--bg-hover) !important;
+  color: var(--text-secondary) !important;
+  font-size: var(--font-sm) !important;
+  font-weight: 600 !important;
+}
+.ant-table-tbody > tr > td {
+  font-size: var(--font-sm) !important;
+}
+.ant-table-tbody > tr:hover > td {
+  background: var(--primary-bg) !important;
+}
+
+.ant-btn-primary {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 2px 0 rgba(59, 130, 246, 0.3) !important;
+}
+.ant-btn-primary:hover {
+  background: var(--primary-hover) !important;
+  border-color: var(--primary-hover) !important;
+}
+
+.ant-tag {
+  border-radius: var(--radius-sm) !important;
+  font-size: var(--font-xs) !important;
+}
+
+.ant-modal .ant-modal-header {
+  border-bottom-color: var(--border-light) !important;
+}
+.ant-modal .ant-modal-title {
+  font-weight: 600 !important;
+}

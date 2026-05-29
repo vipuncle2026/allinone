@@ -1,0 +1,18 @@
+{
+  "name": "All-in-One 个人管理系统",
+  "short_name": "All-in-One",
+  "description": "财务管理、运动记录、旅行记账、基金管理、物品管理一体化个人管理系统",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f8fafc",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

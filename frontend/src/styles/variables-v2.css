@@ -1,0 +1,109 @@
+/* ============================================
+   全局 CSS 变量 - 第二版（蓝色渐变主题）
+   基于配色：#4F5DFE → #7B83FE → #A3A9FE → #C8CCFE → #E8F7FF
+   ============================================ */
+
+:root {
+  /* ── 主色阶（蓝色渐变）── */
+  --blue-900: #1a237e;
+  --blue-800: #283593;
+  --blue-700: #3949ab;
+  --blue-600: #4F5DFE;  /* 主色 - 深蓝 */
+  --blue-500: #7B83FE;  /* 次主色 - 中蓝 */
+  --blue-400: #A3A9FE;  /* 辅助色 - 浅蓝 */
+  --blue-300: #C8CCFE;  /* 浅色 - 更浅蓝 */
+  --blue-200: #E8F7FF;  /* 极浅蓝/青白 */
+  --blue-100: #f0f7ff;
+  --blue-50:  #f8fbff;
+
+  /* ── 功能色 ── */
+  --primary: var(--blue-600);
+  --primary-light: var(--blue-500);
+  --primary-lighter: var(--blue-400);
+  --primary-dark: var(--blue-700);
+  
+  --secondary: var(--blue-400);
+  --accent: var(--blue-300);
+
+  /* ── 中性色 ── */
+  --gray-900: #1a1a2e;
+  --gray-800: #2d2d44;
+  --gray-700: #4a4a6a;
+  --gray-600: #6b6b8a;
+  --gray-500: #8a8aa3;
+  --gray-400: #a5a5bd;
+  --gray-300: #c5c5d6;
+  --gray-200: #e1e1ec;
+  --gray-100: #f0f0f7;
+  --gray-50:  #f8f8fc;
+
+  /* ── 文字色 ── */
+  --text-primary: var(--gray-900);
+  --text-secondary: var(--gray-600);
+  --text-tertiary: var(--gray-500);
+  --text-white: #ffffff;
+  --text-muted: var(--gray-400);
+
+  /* ── 背景色 ── */
+  --bg-body: var(--blue-50);
+  --bg-card: #ffffff;
+  --bg-sidebar: linear-gradient(180deg, var(--blue-700) 0%, var(--blue-600) 100%);
+  --bg-header: #ffffff;
+  --bg-hover: var(--blue-100);
+  --bg-active: var(--blue-200);
+  --bg-selected: rgba(79, 93, 254, 0.1);
+
+  /* ── 边框 ── */
+  --border-color: var(--blue-300);
+  --border-light: var(--blue-200);
+  --border-lighter: var(--gray-200);
+
+  /* ── 圆角 ── */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* ── 阴影 ── */
+  --shadow-sm: 0 1px 2px rgba(79, 93, 254, 0.06);
+  --shadow-md: 0 4px 12px rgba(79, 93, 254, 0.08);
+  --shadow-lg: 0 8px 24px rgba(79, 93, 254, 0.12);
+  --shadow-xl: 0 16px 48px rgba(79, 93, 254, 0.16);
+
+  /* ── 间距 ── */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* ── 字号 ── */
+  --font-xs: 11px;
+  --font-sm: 12px;
+  --font-base: 14px;
+  --font-md: 15px;
+  --font-lg: 17px;
+  --font-xl: 20px;
+  --font-2xl: 24px;
+
+  /* ── 中国股市涨跌色 ── */
+  --up-color: #ef4444;    /* 涨 - 红色 */
+  --down-color: #22c55e;  /* 跌 - 绿色 */
+
+  /* ── 渐变色（统计卡片等）── */
+  --gradient-blue: linear-gradient(135deg, var(--blue-600) 0%, var(--blue-500) 100%);
+  --gradient-blue-light: linear-gradient(135deg, var(--blue-500) 0%, var(--blue-400) 100%);
+  --gradient-blue-soft: linear-gradient(135deg, var(--blue-400) 0%, var(--blue-300) 100%);
+  --gradient-blue-pale: linear-gradient(135deg, var(--blue-300) 0%, var(--blue-200) 100%);
+  
+  --gradient-purple: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
+  --gradient-cyan: linear-gradient(135deg, #06b6d4 0%, #67e8f9 100%);
+  --gradient-green: linear-gradient(135deg, #059669 0%, #34d399 100%);
+  --gradient-orange: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);     /* 加深橙色 */
+  --gradient-yellow: linear-gradient(135deg, #b45309 0%, #d97706 100%);   /* 深黄/琥珀 */
+  --gradient-pink: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+  --gradient-red: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);       /* 加深红色 */
+  --gradient-gray: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);     /* 加深灰色 */
+}

@@ -1,0 +1,51 @@
+version: "3.8"
+
+services:
+  # ──────────────────────────────────────────
+  # 后端 API 服务（FastAPI）
+  # ──────────────────────────────────────────
+  backend:
+    build: ./backend
+    container_name: allinone-backend
+    restart: unless-stopped
+    environment:
+      - DB_PATH=/app/data/allinone.db
+      - UPLOAD_DIR=/app/uploads
+      - TZ=${TZ:-Asia/Shanghai}
+    volumes:
+      # 首次启动前请确保 data/ 目录存在（Docker 不会自动创建含文件的目录）
+      - ./data:/app/data
+      # 运动文件持久化（骑行/徒步/跑步的 GPX/FIT/TCX）
+      - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - allinone-net
+
+  # ──────────────────────────────────────────
+  # 前端 Web 服务（Nginx + 静态资源 + API 反向代理）
+  # ──────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    container_name: allinone-frontend
+    restart: unless-stopped
+    ports:
+      # 左边 = 宿主机端口（按需修改，例：80 被占用时改为 8080）
+      - "${PORT:-8080}:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - allinone-net
+
+networks:
+  allinone-net:
+    driver: bridge

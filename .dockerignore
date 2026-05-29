@@ -1,0 +1,20 @@
+# 后端
+backend/.dockerignore
+__pycache__/
+*.pyc
+*.pyo
+venv/
+*.db
+uploads/
+
+# 前端
+frontend/.dockerignore
+node_modules/
+dist/
+.git/
+
+# 根目录
+.git/
+*.md
+data/
+uploads/

@@ -1,0 +1,14 @@
+{
+  "name": "allinone",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend && ../backend/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000 --reload",
+    "electron": "cd electron && npx electron .",
+    "postinstall": "cd frontend && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

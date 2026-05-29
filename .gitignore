@@ -1,0 +1,84 @@
+# ========================
+# Python / 后端
+# ========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+
+# PyInstaller 打包产物
+backend/dist/
+backend/build_temp/
+*.spec
+
+# 数据库（包含个人数据，不提交）
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# 上传的运动/图片文件
+backend/uploads/
+uploads/
+
+# 日志
+*.log
+backend/logs/
+
+# ========================
+# Node / 前端
+# ========================
+node_modules/
+frontend/dist/
+frontend/.vite/
+.vite/
+dist/
+
+# ========================
+# Electron
+# ========================
+electron/node_modules/
+electron/release/
+electron/dist/
+electron/.venv/
+electron/venv/
+
+# ========================
+# 运行时 / 数据目录
+# ========================
+data/
+.env
+.env.local
+.env.*.local
+
+# ========================
+# macOS
+# ========================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# ========================
+# IDE
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ========================
+# 其他
+# ========================
+*.tar.gz
+*.zip
+frontend.log
+docker-compose.image.yml

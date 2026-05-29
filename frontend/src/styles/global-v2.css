@@ -1,0 +1,258 @@
+/* ============================================
+   全局样式 - 第二版（蓝色渐变主题）
+   ============================================ */
+
+/* ── 基础重置 ── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', 'Microsoft YaHei', sans-serif;
+  font-size: var(--font-base);
+  color: var(--text-primary);
+  background: var(--bg-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── 滚动条 ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--gray-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--gray-400); }
+
+/* ── 链接 ── */
+a { color: var(--primary); text-decoration: none; }
+a:hover { color: var(--primary-light); }
+
+/* ── 选中色 ── */
+::selection { background: var(--blue-200); color: var(--gray-900); }
+
+/* ============================================
+   工具类
+   ============================================ */
+
+/* 涨跌色 */
+.text-up { color: var(--up-color) !important; }
+.text-down { color: var(--down-color) !important; }
+
+/* 文字截断 */
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* 渐变文字 */
+.text-gradient {
+  background: var(--gradient-blue);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================
+   通用组件样式
+   ============================================ */
+
+/* 统计卡片 */
+.stat-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-lighter);
+  transition: box-shadow 0.2s, transform 0.2s;
+  color: var(--text-primary);
+}
+.stat-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.stat-label {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.stat-value {
+  font-size: var(--font-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.stat-sub {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  margin-top: 4px;
+}
+
+/* 渐变统计卡片 */
+.stat-card-gradient {
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.stat-card-gradient:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+.stat-card-gradient .stat-label {
+  color: rgba(255,255,255,0.8);
+  font-size: var(--font-xs);
+  margin-bottom: 6px;
+}
+.stat-card-gradient .stat-value {
+  color: #ffffff;
+  font-size: var(--font-xl);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.stat-card-gradient .stat-sub {
+  color: rgba(255,255,255,0.65);
+  font-size: var(--font-xs);
+  margin-top: 4px;
+}
+
+/* 图表卡片 */
+.chart-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-lighter);
+}
+.chart-title {
+  font-size: var(--font-md);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+/* ============================================
+   Ant Design 覆写
+   ============================================ */
+
+/* Table */
+.ant-table {
+  border-radius: var(--radius-md) !important;
+  overflow: hidden;
+}
+.ant-table-thead > tr > th {
+  background: var(--blue-100) !important;
+  color: var(--text-secondary) !important;
+  font-weight: 600 !important;
+  font-size: var(--font-sm) !important;
+  border-bottom: 1px solid var(--border-light) !important;
+}
+.ant-table-tbody > tr:hover > td {
+  background: var(--blue-50) !important;
+}
+.ant-table-tbody > tr > td {
+  border-bottom: 1px solid var(--gray-100) !important;
+  font-size: var(--font-sm) !important;
+}
+
+/* Card */
+.ant-card {
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border: 1px solid var(--border-lighter) !important;
+}
+.ant-card:hover {
+  box-shadow: var(--shadow-md) !important;
+}
+
+/* Button - Primary */
+.ant-btn-primary {
+  background: var(--gradient-blue) !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(79, 93, 254, 0.3) !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 600 !important;
+}
+.ant-btn-primary:hover {
+  box-shadow: 0 4px 12px rgba(79, 93, 254, 0.4) !important;
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* Button - Default */
+.ant-btn-default {
+  border-color: var(--blue-300) !important;
+  color: var(--blue-600) !important;
+  border-radius: var(--radius-sm) !important;
+}
+.ant-btn-default:hover {
+  border-color: var(--blue-400) !important;
+  color: var(--blue-500) !important;
+  background: var(--blue-50) !important;
+}
+
+/* Tag */
+.ant-tag {
+  border-radius: var(--radius-full) !important;
+  padding: 2px 10px !important;
+  font-size: var(--font-xs) !important;
+}
+
+/* Modal */
+.ant-modal-content {
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-xl) !important;
+  overflow: hidden;
+}
+.ant-modal-header {
+  background: linear-gradient(180deg, var(--blue-100) 0%, #ffffff 100%);
+  border-bottom: 1px solid var(--border-lighter) !important;
+  padding: 14px 20px !important;
+}
+.ant-modal-title {
+  font-weight: 700 !important;
+  color: var(--blue-700) !important;
+}
+.ant-modal-close:hover {
+  color: var(--blue-600) !important;
+}
+
+/* Tabs */
+.ant-tabs-tab {
+  font-weight: 500 !important;
+}
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--blue-600) !important;
+  font-weight: 700 !important;
+}
+.ant-tabs-ink-bar {
+  background: var(--blue-600) !important;
+}
+
+/* Menu - 侧边栏 */
+.sidebar-menu .ant-menu-item-selected {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+/* Form */
+.ant-input:focus,
+.ant-input-focused,
+.ant-picker-focused,
+.ant-select-focused .ant-select-selector {
+  border-color: var(--blue-400) !important;
+  box-shadow: 0 0 0 2px rgba(79, 93, 254, 0.15) !important;
+}
+
+/* Badge */
+.ant-badge-status-dot {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+/* Pagination */
+.ant-pagination-item-active {
+  border-color: var(--blue-600) !important;
+}
+.ant-pagination-item-active a {
+  color: var(--blue-600) !important;
+}
