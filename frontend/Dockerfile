@@ -10,6 +10,9 @@ RUN npm run build
 # 阶段2: Nginx 托管前端 + 反向代理后端
 FROM nginx:alpine
 
+# 安装 curl（供 docker-compose healthcheck 使用）
+RUN apk add --no-cache curl
+
 # 复制构建产物
 COPY --from=builder /app/dist /usr/share/nginx/html
 
