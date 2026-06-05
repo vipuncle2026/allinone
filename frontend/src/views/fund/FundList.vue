@@ -152,6 +152,22 @@
               <a-button size="small" @click="openHoldingEdit(record)">
                 {{ record.shares > 0 ? '📊 持仓' : '设置持仓' }}
               </a-button>
+              <!-- 交易下拉按钮 -->
+              <a-dropdown>
+                <a-button size="small" type="primary">
+                  交易 <DownOutlined />
+                </a-button>
+                <template #overlay>
+                  <a-menu @click="({ key }) => openTradeModal(record, key)">
+                    <a-menu-item key="buy">💰 买入</a-menu-item>
+                    <a-menu-item key="sell">💸 卖出</a-menu-item>
+                    <a-menu-item key="regular">⏰ 定投</a-menu-item>
+                    <a-menu-item key="convert_out">🔄 转换</a-menu-item>
+                    <a-menu-divider />
+                    <a-menu-item key="history">📋 交易记录</a-menu-item>
+                  </a-menu>
+                </template>
+              </a-dropdown>
               <a-select size="small" :value="record.group_id" style="width: 90px"
                 @change="(val) => changeGroup(record.code, val)">
                 <a-select-option v-for="g in groups" :key="g.id" :value="g.id">{{ g.name }}</a-select-option>
@@ -239,6 +255,101 @@
           {{ holdingFund.day_chg ? (holdingFund.day_chg >= 0 ? '+' : '') + holdingFund.day_chg.toFixed(2) + '%' : '--' }}
         </strong>
       </div>
+    </a-modal>
+
+    <!-- 交易操作弹窗 -->
+    <a-modal v-model:open="tradeModalOpen" :title="tradeTypeLabel + ' - ' + tradeFund?.name"
+      width="500px" :confirmLoading="tradeSaving" @ok="submitTrade">
+      <template #footer>
+        <a-button @click="tradeModalOpen = false">取消</a-button>
+        <a-button type="primary" :loading="tradeSaving" @click="submitTrade">确认提交</a-button>
+      </template>
+      <div v-if="tradeFund" style="margin-bottom: 16px">
+        <a-alert :message="`${tradeFund.code} · 当前持仓 ${tradeFund.shares || 0} 份 · 估算净值 ${(tradeFund.est_nav || tradeFund.nav || 0).toFixed(4)}`"
+          type="info" show-icon style="margin-bottom: 16px" />
+        <a-form layout="vertical" :model="tradeForm">
+          <a-row :gutter="16">
+            <a-col :span="12">
+              <a-form-item label="交易日期">
+                <a-input v-model:value="tradeForm.trade_date" placeholder="YYYY-MM-DD" />
+              </a-form-item>
+            </a-col>
+            <a-col :span="12">
+              <a-form-item label="交易金额（元）">
+                <a-input-number v-model:value="tradeForm.amount" :min="0" :step="100" :precision="2"
+                  style="width: 100%" placeholder="如 10000" />
+              </a-form-item>
+            </a-col>
+          </a-row>
+          <a-row :gutter="16">
+            <a-col :span="12">
+              <a-form-item label="成交份额（份）">
+                <a-input-number v-model:value="tradeForm.shares" :min="0" :step="100" :precision="2"
+                  style="width: 100%" placeholder="如 9800.12" />
+              </a-form-item>
+            </a-col>
+            <a-col :span="12">
+              <a-form-item label="手续费（元）">
+                <a-input-number v-model:value="tradeForm.fee" :min="0" :step="0.01" :precision="2"
+                  style="width: 100%" placeholder="如 1.50" />
+              </a-form-item>
+            </a-col>
+          </a-row>
+          <!-- 转换目标 -->
+          <a-form-item v-if="tradeForm.type === 'convert_out'" label="转换目标基金代码">
+            <a-input v-model:value="tradeForm.convert_to" placeholder="请输入目标基金代码（需已在自选列表中）" />
+          </a-form-item>
+          <a-form-item label="备注（选填）">
+            <a-input v-model:value="tradeForm.note" placeholder="如：定期买入" />
+          </a-form-item>
+        </a-form>
+        <!-- 自动计算提示 -->
+        <div v-if="tradeForm.amount > 0 && tradeForm.shares > 0"
+          style="background: #f0f5ff; border-radius: 6px; padding: 10px; font-size: 12px; color: #666">
+          成交净值：<strong style="color: #1a56db">{{ (tradeForm.amount / tradeForm.shares).toFixed(4) }}</strong>
+          &nbsp;|&nbsp;
+          {{ tradeForm.type === 'sell' || tradeForm.type === 'convert_out' ? '卖出' : '买入' }}金额：
+          <strong style="color: #f59e0b">¥{{ tradeForm.amount.toFixed(2) }}</strong>
+        </div>
+      </div>
+    </a-modal>
+
+    <!-- 交易流水记录弹窗 -->
+    <a-modal v-model:open="txHistoryOpen" :title="'交易记录 - ' + txHistoryFund?.name"
+      width="720px" :footer="null" :destroyOnClose="true">
+      <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center">
+        <a-radio-group v-model:value="txTypeFilter" size="small" button-style="solid" @change="loadTxHistory">
+          <a-radio-button value="">全部</a-radio-button>
+          <a-radio-button value="buy">买入</a-radio-button>
+          <a-radio-button value="sell">卖出</a-radio-button>
+          <a-radio-button value="regular">定投</a-radio-button>
+          <a-radio-button value="convert_in">转入</a-radio-button>
+          <a-radio-button value="convert_out">转出</a-radio-button>
+        </a-radio-group>
+        <span style="font-size: 12px; color: #999">共 {{ txTotal }} 条</span>
+      </div>
+      <a-table :data-source="txList" :columns="txColumns" :loading="txLoading"
+        :pagination="{ pageSize: 10, total: txTotal, onChange: (p) => loadTxHistory(p) }"
+        size="small" row-key="id">
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'type'">
+            <a-tag :color="txTypeColor(record.type)">{{ record.type_label }}</a-tag>
+          </template>
+          <template v-if="column.key === 'amount'">
+            <span :style="{ color: ['sell','convert_out'].includes(record.type) ? '#16a34a' : '#e63946' }">
+              {{ ['sell','convert_out'].includes(record.type) ? '-' : '+' }}¥{{ (record.amount || 0).toFixed(2) }}
+            </span>
+          </template>
+          <template v-if="column.key === 'fee'">
+            <span style="color: #999">{{ record.fee ? '¥' + record.fee.toFixed(2) : '--' }}</span>
+          </template>
+          <template v-if="column.key === 'actions'">
+            <a-popconfirm title="确认删除这条交易记录？" @confirm="deleteTx(record.id)">
+              <a-button size="small" danger type="link">删除</a-button>
+            </a-popconfirm>
+          </template>
+        </template>
+      </a-table>
     </a-modal>
 
     <!-- 基金详情弹窗（三标签页） -->
@@ -435,6 +546,7 @@
 <script setup>
 import { ref, onMounted, computed, nextTick, onBeforeUnmount, watch } from 'vue'
 import { message } from 'ant-design-vue'
+import { DownOutlined } from '@ant-design/icons-vue'
 import { fundApi } from '@/api'
 import Chart from 'chart.js/auto'
 
@@ -653,7 +765,7 @@ const columns = [
   { title: '单位净值', dataIndex: 'nav', key: 'nav', width: 100, customRender: ({ text }) => (text || 0).toFixed(4) },
   { title: '今日估算', key: 'day_chg', width: 100 },
   { title: '估值时间', dataIndex: 'val_time', key: 'val_time', width: 140, ellipsis: true },
-  { title: '操作', key: 'actions', width: 260, fixed: 'right' },
+  { title: '操作', key: 'actions', width: 320, fixed: 'right' },
 ]
 
 function typeColor(type) {
@@ -745,6 +857,142 @@ async function saveHolding() {
     await loadFunds()
   } catch (e) {
     message.error('保存失败')
+  }
+}
+
+// ============================================================
+// 交易操作
+// ============================================================
+const TYPE_LABELS = {
+  buy: '买入', sell: '卖出', regular: '定投', convert_out: '转换', convert_in: '转入',
+}
+
+const tradeModalOpen = ref(false)
+const tradeSaving = ref(false)
+const tradeFund = ref(null)
+const tradeTypeLabel = ref('')
+const tradeForm = ref({
+  type: 'buy',
+  trade_date: '',
+  amount: 0,
+  shares: 0,
+  fee: 0,
+  convert_to: '',
+  note: '',
+})
+
+function openTradeModal(fund, type) {
+  if (type === 'history') {
+    openTxHistory(fund)
+    return
+  }
+  tradeFund.value = fund
+  tradeTypeLabel.value = TYPE_LABELS[type] || type
+  tradeForm.value = {
+    type,
+    trade_date: new Date().toISOString().slice(0, 10),
+    amount: 0,
+    shares: 0,
+    fee: 0,
+    convert_to: '',
+    note: '',
+  }
+  tradeModalOpen.value = true
+}
+
+async function submitTrade() {
+  const f = tradeForm.value
+  if (!f.trade_date) { message.warning('请填写交易日期'); return }
+  if (f.amount <= 0 && f.shares <= 0) { message.warning('请填写交易金额或份额'); return }
+  if (f.type === 'convert_out' && !f.convert_to) { message.warning('请填写转换目标基金代码'); return }
+  tradeSaving.value = true
+  try {
+    await fundApi.createTransaction({
+      code: tradeFund.value.code,
+      type: f.type,
+      trade_date: f.trade_date,
+      amount: f.amount || 0,
+      shares: f.shares || 0,
+      fee: f.fee || 0,
+      convert_to: f.convert_to || '',
+      note: f.note || '',
+    })
+    tradeModalOpen.value = false
+    message.success(`${tradeTypeLabel.value}记录已保存，持仓已自动更新`)
+    await loadFunds()
+  } catch (e) {
+    message.error(e.response?.data?.detail || '提交失败')
+  } finally {
+    tradeSaving.value = false
+  }
+}
+
+// ============================================================
+// 交易流水记录
+// ============================================================
+const txHistoryOpen = ref(false)
+const txHistoryFund = ref(null)
+const txList = ref([])
+const txTotal = ref(0)
+const txLoading = ref(false)
+const txTypeFilter = ref('')
+const txPage = ref(1)
+
+const txColumns = [
+  { title: '日期', dataIndex: 'trade_date', key: 'trade_date', width: 100 },
+  { title: '类型', key: 'type', width: 70 },
+  { title: '金额', key: 'amount', width: 120 },
+  { title: '份额', dataIndex: 'shares', key: 'shares', width: 100,
+    customRender: ({ text }) => text ? text.toFixed(2) : '--' },
+  { title: '净值', dataIndex: 'nav', key: 'nav', width: 80,
+    customRender: ({ text }) => text ? text.toFixed(4) : '--' },
+  { title: '手续费', key: 'fee', width: 80 },
+  { title: '备注', dataIndex: 'note', key: 'note', ellipsis: true },
+  { title: '操作', key: 'actions', width: 60, fixed: 'right' },
+]
+
+function txTypeColor(type) {
+  const map = { buy: 'blue', sell: 'green', regular: 'purple', convert_in: 'cyan', convert_out: 'orange' }
+  return map[type] || 'default'
+}
+
+async function openTxHistory(fund) {
+  txHistoryFund.value = fund
+  txTypeFilter.value = ''
+  txPage.value = 1
+  txHistoryOpen.value = true
+  await loadTxHistory(1)
+}
+
+async function loadTxHistory(page = 1) {
+  if (!txHistoryFund.value) return
+  txPage.value = page
+  txLoading.value = true
+  try {
+    const params = {
+      code: txHistoryFund.value.code,
+      limit: 10,
+      offset: (page - 1) * 10,
+    }
+    if (txTypeFilter.value) params.type = txTypeFilter.value
+    const res = await fundApi.listTransactions(params)
+    txList.value = res.data.items
+    txTotal.value = res.data.total
+  } catch (e) {
+    message.error('加载交易记录失败')
+  } finally {
+    txLoading.value = false
+  }
+}
+
+async function deleteTx(id) {
+  try {
+    await fundApi.deleteTransaction(id)
+    message.success('已删除，持仓已重新计算')
+    await loadTxHistory(txPage.value)
+    await loadFunds()
+  } catch (e) {
+    message.error('删除失败')
   }
 }
 

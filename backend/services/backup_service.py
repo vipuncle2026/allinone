@@ -140,7 +140,7 @@ def export_all_data(sess):
     from models.hiking import HikingActivity
     from models.running import RunningActivity
     from models.travel import TravelTrip, TravelExpense, TravelMileage
-    from models.fund import FundLibrary, FundFavorite, FundGroup, FundSnapshot, FundSnapshotItem
+    from models.fund import FundLibrary, FundFavorite, FundGroup, FundSnapshot, FundSnapshotItem, FundTransaction
     from models.vehicle import Vehicle, FuelRecord, VehicleExpense
     from models.item import Item
     from models.auth import User
@@ -177,6 +177,7 @@ def export_all_data(sess):
                 "library": export_table(sess, "fund_library", FundLibrary),
                 "favorites": export_table(sess, "fund_favorites", FundFavorite),
                 "groups": export_table(sess, "fund_groups", FundGroup),
+                "transactions": export_table(sess, "fund_transactions", FundTransaction),
                 "snapshots": export_table(sess, "fund_snapshots", FundSnapshot),
                 "snapshot_items": export_table(sess, "fund_snapshot_items", FundSnapshotItem),
             },
@@ -223,7 +224,7 @@ def _build_table_config():
     from models.hiking import HikingActivity
     from models.running import RunningActivity
     from models.travel import TravelTrip, TravelExpense, TravelMileage
-    from models.fund import FundLibrary, FundFavorite, FundGroup, FundSnapshot, FundSnapshotItem
+    from models.fund import FundLibrary, FundFavorite, FundGroup, FundSnapshot, FundSnapshotItem, FundTransaction
     from models.vehicle import Vehicle, FuelRecord, VehicleExpense
     from models.item import Item
 
@@ -255,6 +256,7 @@ def _build_table_config():
             ("library", FundLibrary, "code"),
             ("favorites", FundFavorite, "id"),
             ("groups", FundGroup, "id"),
+            ("transactions", FundTransaction, "id"),
             ("snapshots", FundSnapshot, "id"),
             ("snapshot_items", FundSnapshotItem, "id"),
         ],
@@ -480,7 +482,7 @@ def reset_all_data() -> dict:
     from models.hiking import HikingActivity
     from models.running import RunningActivity
     from models.travel import TravelTrip, TravelExpense, TravelMileage
-    from models.fund import FundLibrary, FundFavorite, FundGroup, FundSnapshot, FundSnapshotItem
+    from models.fund import FundLibrary, FundFavorite, FundGroup, FundSnapshot, FundSnapshotItem, FundTransaction
     from models.vehicle import Vehicle, FuelRecord, VehicleExpense
     from models.item import Item
     from models.settings import UserSetting
@@ -501,6 +503,7 @@ def reset_all_data() -> dict:
         ("travel_mileages", TravelMileage),
         ("fund_favorites", FundFavorite),
         ("fund_groups", FundGroup),
+        ("fund_transactions", FundTransaction),
         ("fund_snapshot_items", FundSnapshotItem),
         ("fund_snapshots", FundSnapshot),
         ("fund_library", FundLibrary),

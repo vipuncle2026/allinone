@@ -83,6 +83,26 @@ class FundSnapshot(Base):
     created_at = Column(DateTime, default=datetime.now)
 
 
+class FundTransaction(Base):
+    """基金交易流水"""
+    __tablename__ = "fund_transactions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String(10), nullable=False, comment="基金代码")
+    name = Column(String(100), default="", comment="基金名称")
+    # 类型：buy=买入 sell=卖出 convert_in=转入 convert_out=转出 regular=定投
+    type = Column(String(20), nullable=False, comment="交易类型")
+    trade_date = Column(String(10), nullable=False, comment="交易日期 YYYY-MM-DD")
+    amount = Column(Float, default=0, comment="交易金额（元）")
+    shares = Column(Float, default=0, comment="成交份额")
+    nav = Column(Float, default=0, comment="成交净值")
+    fee = Column(Float, default=0, comment="手续费（元）")
+    # convert_to：转换目标基金代码（转出时使用）
+    convert_to = Column(String(10), default="", comment="转换目标基金代码")
+    note = Column(Text, default="", comment="备注")
+    created_at = Column(DateTime, default=datetime.now)
+
+
 class FundSnapshotItem(Base):
     """基金持仓每日快照（单只明细）"""
     __tablename__ = "fund_snapshot_items"

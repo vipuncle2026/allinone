@@ -31,6 +31,9 @@
           />
         </a-form-item>
         <a-form-item>
+          <a-checkbox v-model:checked="rememberMe">记住用户名</a-checkbox>
+        </a-form-item>
+        <a-form-item>
           <a-button
             type="primary"
             html-type="submit"
@@ -88,7 +91,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, h } from 'vue'
+import { reactive, ref, h, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue'
@@ -97,10 +100,19 @@ import { authApi, markJustLoggedIn } from '@/api'
 const router = useRouter()
 const loading = ref(false)
 const pwdInput = ref(null)
+const rememberMe = ref(false)
 
 const form = reactive({
   username: '',
   password: '',
+})
+
+onMounted(() => {
+  const saved = localStorage.getItem('saved_username')
+  if (saved) {
+    form.username = saved
+    rememberMe.value = true
+  }
 })
 
 const showReset = ref(false)
@@ -118,6 +130,12 @@ async function handleLogin() {
     const { data } = await authApi.login(form.username, form.password)
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
+    // 记住用户名
+    if (rememberMe.value) {
+      localStorage.setItem('saved_username', form.username)
+    } else {
+      localStorage.removeItem('saved_username')
+    }
     markJustLoggedIn()
     console.log('[登录] token 已保存:', data.token?.substring(0, 16) + '...', '准备跳转 /dashboard')
     message.success('登录成功')

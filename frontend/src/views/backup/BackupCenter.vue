@@ -321,7 +321,7 @@ const MODULES = [
   { name: '徒步管理', icon: '🥾', theme: 'teal', color: '#14b8a6', tables: ['hiking_activities'] },
   { name: '跑步管理', icon: '🏃', theme: 'orange', color: '#f97316', tables: ['running_activities'] },
   { name: '旅行管理', icon: '✈️', theme: 'violet', color: '#8b5cf6', tables: ['travel_trips', 'travel_expenses', 'travel_mileages'] },
-  { name: '基金管理', icon: '📊', theme: 'amber', color: '#f59e0b', tables: ['fund_library', 'fund_favorites', 'fund_groups', 'fund_snapshots', 'fund_snapshot_items'] },
+  { name: '基金管理', icon: '📊', theme: 'amber', color: '#f59e0b', tables: ['fund_library', 'fund_favorites', 'fund_groups', 'fund_transactions', 'fund_snapshots', 'fund_snapshot_items'] },
   { name: '车辆管理', icon: '🚗', theme: 'rose', color: '#f43f5e', tables: ['vehicles', 'fuel_records', 'vehicle_expenses'] },
   { name: '物品管理', icon: '📦', theme: 'slate', color: '#64748b', tables: ['important_items'] },
 ]
@@ -343,6 +343,7 @@ const TABLE_LABELS = {
   fund_library: '基金库',
   fund_favorites: '自选基金',
   fund_groups: '基金分组',
+  fund_transactions: '交易记录',
   fund_snapshots: '持仓快照',
   fund_snapshot_items: '持仓快照明细',
   vehicles: '机动车',

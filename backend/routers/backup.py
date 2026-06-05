@@ -141,6 +141,7 @@ def backup_info():
             ("fund_library", "基金库"),
             ("fund_favorites", "自选基金"),
             ("fund_groups", "基金分组"),
+            ("fund_transactions", "交易记录"),
             ("fund_snapshots", "持仓快照"),
             ("fund_snapshot_items", "持仓快照明细"),
             ("vehicles", "机动车"),

@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 from database import get_db
-from models.fund import FundFavorite, FundGroup, FundLibrary, FundSnapshot, FundSnapshotItem
+from models.fund import FundFavorite, FundGroup, FundLibrary, FundSnapshot, FundSnapshotItem, FundTransaction
 from services import fund_service
 
 router = APIRouter(prefix="/api/fund", tags=["fund"])
@@ -60,6 +60,27 @@ class FundImportItem(BaseModel):
     manager: Optional[str] = "--"
     company: Optional[str] = "--"
     scale: Optional[float] = 0
+
+
+class FundTransactionCreate(BaseModel):
+    code: str
+    type: str                        # buy / sell / convert_in / convert_out / regular
+    trade_date: str                  # YYYY-MM-DD
+    amount: float = 0
+    shares: float = 0
+    nav: float = 0
+    fee: float = 0
+    convert_to: Optional[str] = ""
+    note: Optional[str] = ""
+
+
+class FundTransactionUpdate(BaseModel):
+    trade_date: Optional[str] = None
+    amount: Optional[float] = None
+    shares: Optional[float] = None
+    nav: Optional[float] = None
+    fee: Optional[float] = None
+    note: Optional[str] = None
 
 
 # ============================================================
@@ -335,3 +356,178 @@ async def delete_snapshot(snapshot_date: str, db: Session = Depends(get_db)):
     db.delete(snap)
     db.commit()
     return {"ok": True, "message": f"已删除 {snapshot_date} 快照"}
+
+
+# ============================================================
+# 交易流水 API
+# ============================================================
+
+def _tx_to_dict(tx: FundTransaction) -> dict:
+    """交易流水转字典"""
+    TYPE_LABEL = {
+        "buy": "买入", "sell": "卖出",
+        "convert_in": "转入", "convert_out": "转出", "regular": "定投",
+    }
+    return {
+        "id": tx.id,
+        "code": tx.code,
+        "name": tx.name,
+        "type": tx.type,
+        "type_label": TYPE_LABEL.get(tx.type, tx.type),
+        "trade_date": tx.trade_date,
+        "amount": tx.amount,
+        "shares": tx.shares,
+        "nav": tx.nav,
+        "fee": tx.fee,
+        "convert_to": tx.convert_to or "",
+        "note": tx.note or "",
+        "created_at": tx.created_at.isoformat() if tx.created_at else None,
+    }
+
+
+def _recalc_holding(code: str, db: Session):
+    """根据交易流水重算基金持仓（份额 + 移动加权成本净值）"""
+    fund = db.query(FundFavorite).filter(FundFavorite.code == code).first()
+    if not fund:
+        return
+
+    txs = (
+        db.query(FundTransaction)
+        .filter(FundTransaction.code == code)
+        .order_by(FundTransaction.trade_date, FundTransaction.id)
+        .all()
+    )
+
+    total_shares = 0.0
+    total_cost = 0.0   # 累计买入总成本（含手续费）
+
+    for tx in txs:
+        if tx.type in ("buy", "convert_in", "regular"):
+            cost = tx.amount + (tx.fee or 0)
+            total_shares += tx.shares
+            total_cost += cost
+        elif tx.type in ("sell", "convert_out"):
+            if total_shares > 0:
+                sell_ratio = min(tx.shares / total_shares, 1.0)
+                total_cost -= total_cost * sell_ratio
+                total_shares -= tx.shares
+                if total_shares < 0:
+                    total_shares = 0
+                    total_cost = 0
+
+    fund.shares = round(max(total_shares, 0), 4)
+    fund.cost_nav = round(total_cost / total_shares, 4) if total_shares > 0 else 0
+    fund.updated_at = datetime.now()
+    db.commit()
+
+
+@router.get("/transaction/list")
+def list_transactions(
+    code: Optional[str] = Query(None, description="基金代码，不传则返回全部"),
+    type: Optional[str] = Query(None, description="交易类型筛选"),
+    limit: int = Query(50, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+    db: Session = Depends(get_db),
+):
+    """获取交易流水列表"""
+    q = db.query(FundTransaction)
+    if code:
+        q = q.filter(FundTransaction.code == code)
+    if type:
+        q = q.filter(FundTransaction.type == type)
+    total = q.count()
+    txs = q.order_by(FundTransaction.trade_date.desc(), FundTransaction.id.desc()).offset(offset).limit(limit).all()
+    return {"total": total, "items": [_tx_to_dict(t) for t in txs]}
+
+
+@router.post("/transaction")
+def create_transaction(req: FundTransactionCreate, db: Session = Depends(get_db)):
+    """新增交易记录（自动重算持仓）"""
+    fund = db.query(FundFavorite).filter(FundFavorite.code == req.code).first()
+    if not fund:
+        raise HTTPException(404, f"基金 {req.code} 不在自选列表中")
+
+    # 转换：同时需要创建目标基金的 convert_in 记录
+    if req.type == "convert_out" and req.convert_to:
+        target = db.query(FundFavorite).filter(FundFavorite.code == req.convert_to).first()
+        if not target:
+            raise HTTPException(404, f"转换目标基金 {req.convert_to} 不在自选列表中，请先添加到自选")
+
+    tx = FundTransaction(
+        code=req.code,
+        name=fund.name,
+        type=req.type,
+        trade_date=req.trade_date,
+        amount=req.amount,
+        shares=req.shares,
+        nav=req.nav if req.nav else (req.amount / req.shares if req.shares > 0 else 0),
+        fee=req.fee,
+        convert_to=req.convert_to or "",
+        note=req.note or "",
+    )
+    db.add(tx)
+    db.flush()
+
+    # 转出同时生成转入记录
+    if req.type == "convert_out" and req.convert_to:
+        target_fund = db.query(FundFavorite).filter(FundFavorite.code == req.convert_to).first()
+        tx_in = FundTransaction(
+            code=req.convert_to,
+            name=target_fund.name if target_fund else req.convert_to,
+            type="convert_in",
+            trade_date=req.trade_date,
+            amount=req.amount,
+            shares=req.shares,
+            nav=tx.nav,
+            fee=0,
+            convert_to=req.code,
+            note=f"由 {fund.name} 转入",
+        )
+        db.add(tx_in)
+
+    db.commit()
+
+    # 重算持仓
+    _recalc_holding(req.code, db)
+    if req.type == "convert_out" and req.convert_to:
+        _recalc_holding(req.convert_to, db)
+
+    return {"ok": True, "message": "交易记录已保存", "id": tx.id}
+
+
+@router.put("/transaction/{tx_id}")
+def update_transaction(tx_id: int, req: FundTransactionUpdate, db: Session = Depends(get_db)):
+    """编辑交易记录（重算持仓）"""
+    tx = db.query(FundTransaction).filter(FundTransaction.id == tx_id).first()
+    if not tx:
+        raise HTTPException(404, "交易记录不存在")
+    code = tx.code
+    if req.trade_date is not None:
+        tx.trade_date = req.trade_date
+    if req.amount is not None:
+        tx.amount = req.amount
+    if req.shares is not None:
+        tx.shares = req.shares
+    if req.nav is not None:
+        tx.nav = req.nav
+    if req.fee is not None:
+        tx.fee = req.fee
+    if req.note is not None:
+        tx.note = req.note
+    db.commit()
+    _recalc_holding(code, db)
+    return {"ok": True, "message": "交易记录已更新"}
+
+
+@router.delete("/transaction/{tx_id}")
+def delete_transaction(tx_id: int, db: Session = Depends(get_db)):
+    """删除交易记录（重算持仓）"""
+    tx = db.query(FundTransaction).filter(FundTransaction.id == tx_id).first()
+    if not tx:
+        raise HTTPException(404, "交易记录不存在")
+    code = tx.code
+    db.delete(tx)
+    db.commit()
+    _recalc_holding(code, db)
+    return {"ok": True, "message": "交易记录已删除"}
+

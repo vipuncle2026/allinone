@@ -331,6 +331,24 @@ export const fundApi = {
   deleteSnapshot(date) {
     return http.delete(`/fund/snapshot/${date}`)
   },
+
+  // ─── 交易流水 ─────────────────────────────────────────
+  /** 获取交易流水 */
+  listTransactions(params = {}) {
+    return http.get('/fund/transaction/list', { params })
+  },
+  /** 新增交易记录 */
+  createTransaction(data) {
+    return http.post('/fund/transaction', data)
+  },
+  /** 编辑交易记录 */
+  updateTransaction(id, data) {
+    return http.put(`/fund/transaction/${id}`, data)
+  },
+  /** 删除交易记录 */
+  deleteTransaction(id) {
+    return http.delete(`/fund/transaction/${id}`)
+  },
 }
 
 // ─── 财务管理 API ─────────────────────────────────────────
