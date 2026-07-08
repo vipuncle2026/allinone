@@ -242,7 +242,7 @@
           <a-input
             ref="searchInputRef"
             v-model:value="searchKeyword"
-            placeholder="搜索旅行、骑行、徒步、财务、基金、物品..."
+            placeholder="搜索旅行、骑行、徒步、财务、基金、车辆、物品..."
             size="large"
             :bordered="false"
             @pressEnter="doSearch"

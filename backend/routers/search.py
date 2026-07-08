@@ -158,4 +158,62 @@ def global_search(
             "url": "/item",
         })
 
+    # 7. 车辆管理
+    from models.vehicle import Vehicle, FuelRecord, VehicleExpense
+    vehicles = db.query(Vehicle).filter(
+        or_(
+            Vehicle.name.ilike(keyword),
+            Vehicle.brand.ilike(keyword),
+            Vehicle.model.ilike(keyword),
+            Vehicle.plate.ilike(keyword),
+            Vehicle.color.ilike(keyword),
+            Vehicle.fuel_type.ilike(keyword),
+            Vehicle.notes.ilike(keyword),
+        )
+    ).limit(limit).all()
+    for v in vehicles:
+        results.append({
+            "module": "车辆", "icon": "🚗", "type": "车辆",
+            "title": v.name,
+            "subtitle": f"{v.brand or ''} {v.model or ''} · {v.plate or ''}".strip(),
+            "date": str(v.purchase_date) if v.purchase_date else "",
+            "url": "/vehicle/list",
+        })
+
+    # 加油记录
+    fuels = db.query(FuelRecord).filter(
+        or_(
+            FuelRecord.station_name.ilike(keyword),
+            FuelRecord.fuel_grade.ilike(keyword),
+            FuelRecord.charge_type.ilike(keyword),
+            FuelRecord.notes.ilike(keyword),
+        )
+    ).order_by(FuelRecord.fuel_date.desc()).limit(limit).all()
+    for f in fuels:
+        veh = db.query(Vehicle).filter(Vehicle.id == f.vehicle_id).first()
+        results.append({
+            "module": "车辆", "icon": "⛽", "type": "加油/充电",
+            "title": f"{veh.name if veh else ''} · {f.fuel_grade or f.charge_type or ''}",
+            "subtitle": f"¥{f.actual_cost:,.0f}" if f.actual_cost else (f"¥{f.display_cost:,.0f}" if f.display_cost else ""),
+            "date": str(f.fuel_date) if f.fuel_date else "",
+            "url": "/vehicle/fuel",
+        })
+
+    # 车辆费用
+    expenses = db.query(VehicleExpense).filter(
+        or_(
+            VehicleExpense.expense_type.ilike(keyword),
+            VehicleExpense.notes.ilike(keyword),
+        )
+    ).order_by(VehicleExpense.expense_date.desc()).limit(limit).all()
+    for e in expenses:
+        veh = db.query(Vehicle).filter(Vehicle.id == e.vehicle_id).first()
+        results.append({
+            "module": "车辆", "icon": "🔧", "type": "车辆费用",
+            "title": e.expense_type or "费用",
+            "subtitle": f"{veh.name if veh else ''} · ¥{e.amount:,.0f}",
+            "date": str(e.expense_date) if e.expense_date else "",
+            "url": "/vehicle/list",
+        })
+
     return {"keyword": q, "total": len(results), "results": results}
