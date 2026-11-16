@@ -213,12 +213,27 @@ def _already_imported(db: Session, ride_id) -> bool:
     )
 
 
+def _to_dt(value):
+    """把 ISO 字符串（parse_fit 返回 str）转成 datetime，供 SQLite DateTime 列使用"""
+    if value is None or isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        s = value.strip().replace("Z", "+00:00")
+        try:
+            return datetime.fromisoformat(s)
+        except Exception:
+            for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
+                try:
+                    return datetime.strptime(s, fmt)
+                except Exception:
+                    continue
+    return None
+
+
 def _insert_activity(db: Session, ride_id, item: dict, parsed: dict, rel_path: str) -> CyclingActivity:
-    start_time = parsed.get("start_time")
-    try:
-        date_val = datetime.fromisoformat(start_time).date() if start_time else datetime.now().date()
-    except Exception:
-        date_val = datetime.now().date()
+    start_dt = _to_dt(parsed.get("start_time"))
+    end_dt = _to_dt(parsed.get("end_time"))
+    date_val = start_dt.date() if start_dt else datetime.now().date()
 
     title = (item.get("title") or "").strip()
     if not title:
@@ -227,8 +242,8 @@ def _insert_activity(db: Session, ride_id, item: dict, parsed: dict, rel_path: s
     act = CyclingActivity(
         title=title[:200],
         date=date_val,
-        start_time=start_time,
-        end_time=parsed.get("end_time"),
+        start_time=start_dt,
+        end_time=end_dt,
         distance_km=parsed.get("distance_km"),
         duration_sec=parsed.get("duration_sec"),
         elevation_gain=parsed.get("elevation_gain"),
@@ -323,6 +338,7 @@ async def run_sync(db: Session, page_size: int = 20, delay: float = 0.4) -> dict
                     if not ride_id:
                         continue
                     SYNC_STATE["phase"] = "downloading"
+                    abs_path = None
                     try:
                         if _already_imported(db, ride_id):
                             SYNC_STATE["skipped"] += 1
@@ -356,9 +372,20 @@ async def run_sync(db: Session, page_size: int = 20, delay: float = 0.4) -> dict
                         SYNC_STATE["done"] += 1
                         SYNC_STATE["message"] = f"已导入 {SYNC_STATE['imported']} 条"
                     except Exception as e:
+                        # 单条失败必须回滚，否则 session 进入 rollback 状态会导致后续全部失败
+                        try:
+                            db.rollback()
+                        except Exception:
+                            pass
+                        # 清理失败留下的半成品文件
+                        if abs_path:
+                            try:
+                                os.remove(abs_path)
+                            except Exception:
+                                pass
                         SYNC_STATE["failed"] += 1
                         SYNC_STATE["done"] += 1
-                        SYNC_STATE["message"] = f"rideId {ride_id} 失败：{e}"
+                        SYNC_STATE["message"] = f"rideId {ride_id} 失败：{str(e)[:150]}"
                         print(f"[iGPSPORT] rideId {ride_id} 失败: {e}")
 
                     await asyncio.sleep(delay)
@@ -391,14 +418,14 @@ async def run_sync(db: Session, page_size: int = 20, delay: float = 0.4) -> dict
         )
     except Exception as e:
         SYNC_STATE["phase"] = "error"
-        SYNC_STATE["message"] = f"同步失败：{e}"
+        SYNC_STATE["message"] = f"同步失败：{str(e)[:300]}"
         result = {"ok": False, "message": str(e), **{k: SYNC_STATE[k] for k in ("imported", "skipped", "failed")}}
         save_state(
             db,
             {
                 "last_sync_at": SYNC_STATE["started_at"],
                 **{k: SYNC_STATE[k] for k in ("imported", "skipped", "failed")},
-                "error": str(e),
+                "error": str(e)[:300],
             },
         )
         print(f"[iGPSPORT] 同步失败: {e}")
