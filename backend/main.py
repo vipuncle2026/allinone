@@ -3,7 +3,6 @@ from pathlib import Path
 from fastapi import FastAPI, Depends, Request, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 import os
 import argparse
 import time
@@ -13,6 +12,7 @@ from collections import defaultdict
 
 from database import init_db, get_upload_dir, get_data_dir
 from routers import cycling, fund, finance, hiking, vehicle, travel, backup, auth, dashboard, item, search, settings, running, health
+from services.upload_utils import resolve_upload_path
 
 
 # ── 简易限流器（基于 IP + 时间窗口）────────────────────────────────────────
@@ -107,15 +107,15 @@ async def _daily_snapshot_task():
             try:
                 # 先刷新净值（调用公共函数，避免重复实现）
                 try:
-                    from routers.fund import refresh_all_navs
+                    from services.fund_service import refresh_all_navs
                     result = await refresh_all_navs(db)
                     print(f"[SnapshotTask] 净值刷新完成: {result.get('message', '')}")
                 except Exception as e:
                     print(f"[SnapshotTask] 净值刷新异常: {e}")
 
                 # 执行快照
-                from routers.fund import _do_take_snapshot
-                result = await _do_take_snapshot(db)
+                from services.fund_service import do_take_snapshot
+                result = await do_take_snapshot(db)
                 print(f"[SnapshotTask] 快照结果: {result}")
             finally:
                 db.close()
@@ -173,7 +173,13 @@ app.include_router(health.router, dependencies=[Depends(auth.verify_token)])
 # 上传目录（支持环境变量 UPLOAD_DIR，Electron 桌面端会设置）
 UPLOAD_DIR = get_upload_dir()
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
+
+@app.get("/uploads/{path:path}")
+def serve_upload(path: str, _=Depends(auth.verify_token)):
+    """通过登录会话访问上传文件，禁止目录穿越。"""
+    target = resolve_upload_path(f"uploads/{path}", require_exists=True)
+    return FileResponse(str(target))
 
 # ── 前端静态文件服务（Electron 桌面端 / 独立部署）───────────────────────
 FRONTEND_DIST = os.environ.get("FRONTEND_DIST", "")
@@ -188,9 +194,13 @@ if FRONTEND_DIST and os.path.isdir(FRONTEND_DIST):
         if path.startswith("/api/") or path.startswith("/uploads") or path == "/health":
             return await call_next(request)
         # 尝试返回静态文件，否则返回 index.html（SPA fallback）
-        file_path = _fe_dist / path.lstrip("/")
-        if file_path.is_file():
-            return FileResponse(str(file_path))
+        candidate = (_fe_dist / path.lstrip("/")).resolve()
+        try:
+            candidate.relative_to(_fe_dist)
+        except ValueError:
+            return FileResponse(str(_fe_dist / "index.html"), status_code=404)
+        if candidate.is_file():
+            return FileResponse(str(candidate))
         return FileResponse(str(_fe_dist / "index.html"))
 
 

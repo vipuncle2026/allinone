@@ -14,6 +14,7 @@ env/
 backend/dist/
 backend/build_temp/
 *.spec
+!backend/allinone-api.spec
 
 # 数据库（包含个人数据，不提交）
 *.db
@@ -81,3 +82,4 @@ Icon?
 *.tar.gz
 *.zip
 frontend.log
+.allinone-*.pid

@@ -2,7 +2,7 @@
 
 import os
 import uuid
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Tuple
 import zipfile
 from fastapi import HTTPException
@@ -22,13 +22,55 @@ def safe_upload_path(upload_dir: str, ext: str) -> str:
     return str(Path(upload_dir) / filename)
 
 
-def safe_extract_path(data_dir: str, entry_name: str) -> str:
-    """校验 zip entry 解压后的路径，防止 Zip Slip 攻击。
+def resolve_upload_path(path: str, *, require_exists: bool = False) -> Path:
+    """把数据库/API 中的上传文件引用解析到 uploads 根目录内。"""
+    if not path or "\x00" in path:
+        raise HTTPException(400, "非法的上传文件路径")
 
-    确保 resolve 后的路径仍在 data_dir 目录内。
+    normalized = path.replace("\\", "/")
+    if normalized.startswith("uploads/"):
+        normalized = normalized[len("uploads/"):]
+
+    relative = PurePosixPath(normalized)
+    if relative.is_absolute() or not relative.parts or ".." in relative.parts:
+        raise HTTPException(400, "非法的上传文件路径")
+
+    base = Path(os.getenv("UPLOAD_DIR") or "").resolve() if os.getenv("UPLOAD_DIR") else None
+    if base is None:
+        from database import get_upload_dir
+        base = Path(get_upload_dir()).resolve()
+
+    resolved = (base / Path(*relative.parts)).resolve()
+    try:
+        resolved.relative_to(base)
+    except ValueError:
+        raise HTTPException(400, "非法的上传文件路径")
+
+    if require_exists and not resolved.is_file():
+        raise HTTPException(404, "上传文件不存在")
+    return resolved
+
+
+def safe_remove_upload(path: str) -> bool:
+    """仅删除 uploads 根目录内的普通文件。"""
+    try:
+        target = resolve_upload_path(path)
+    except HTTPException:
+        return False
+    if not target.is_file():
+        return False
+    try:
+        target.unlink()
+        return True
+    except OSError:
+        return False
+
+
+def safe_extract_path(upload_dir: str, entry_name: str) -> str:
+    """校验备份 ZIP 中的 uploads 条目并返回上传根目录内的目标路径。
 
     Args:
-        data_dir: 允许解压的目标根目录
+        upload_dir: 允许解压的 uploads 根目录
         entry_name: zip 条目中的文件名（如 uploads/cycling/xxx.gpx）
 
     Returns:
@@ -37,16 +79,24 @@ def safe_extract_path(data_dir: str, entry_name: str) -> str:
     Raises:
         HTTPException: 路径尝试逃逸 data_dir 时抛出 400
     """
-    target = Path(data_dir) / entry_name
-    resolved = target.resolve()
-    base = Path(data_dir).resolve()
+    if "\x00" in entry_name or "\\" in entry_name:
+        raise HTTPException(400, f"非法的备份文件路径: {entry_name}")
 
-    # 路径必须在 base 目录内（或就是 base 本身）
+    entry = PurePosixPath(entry_name)
+    try:
+        relative = entry.relative_to("uploads")
+    except ValueError:
+        raise HTTPException(400, f"非法的备份文件路径: {entry_name}")
+
+    if relative.is_absolute() or not relative.parts or ".." in relative.parts:
+        raise HTTPException(400, f"非法的备份文件路径: {entry_name}")
+
+    base = Path(upload_dir).resolve()
+    resolved = (base / Path(*relative.parts)).resolve()
     try:
         resolved.relative_to(base)
     except ValueError:
         raise HTTPException(400, f"非法的备份文件路径: {entry_name}")
-
     return str(resolved)
 
 

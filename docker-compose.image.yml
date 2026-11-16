@@ -19,6 +19,12 @@ services:
     volumes:
       - ./data:/app/data
       - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - allinone-net
 
@@ -30,7 +36,8 @@ services:
       # 左边 = 宿主机端口，可自定义（如 PORT=8484 docker compose -f docker-compose.image.yml up -d）
       - "${PORT:-8080}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - allinone-net
 

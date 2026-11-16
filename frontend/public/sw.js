@@ -1,4 +1,4 @@
-const CACHE_NAME = 'allinone-v1';
+const CACHE_NAME = 'allinone-v2';
 
 // 需要预缓存的静态资源（构建后会自动更新）
 const PRECACHE_URLS = [
@@ -33,31 +33,8 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // API 请求：网络优先，失败后回退到缓存（展示离线提示）
-  if (url.pathname.startsWith('/api/')) {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          // 成功的 GET 请求缓存 5 分钟
-          if (request.method === 'GET' && response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(request, clone);
-            });
-          }
-          return response;
-        })
-        .catch(async () => {
-          // 网络失败，尝试从缓存读取
-          const cached = await caches.match(request);
-          if (cached) return cached;
-          // 无缓存，返回离线提示
-          return new Response(
-            JSON.stringify({ detail: '网络不可用，请检查网络连接' }),
-            { headers: { 'Content-Type': 'application/json' }, status: 503 }
-          );
-        })
-    );
+  // API 和个人上传文件包含敏感数据，始终直连网络且不进入 Cache Storage。
+  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/uploads/')) {
     return;
   }
 

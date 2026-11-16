@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import HTTPException
 from sqlalchemy import inspect, text
 
-from database import get_session_factory, get_engine, get_upload_dir, get_data_dir, _get_db_path
+from database import get_session_factory, get_engine, get_upload_dir, _get_db_path
 from services.upload_utils import safe_extract_path, validate_zip_limits
 
 BACKUP_VERSION = "1.0"
@@ -95,7 +95,7 @@ def format_size(size_bytes):
         return f"{size_bytes / 1024 / 1024 / 1024:.2f} GB"
 
 
-def save_log(sess, operation, file_name="", file_size=0, record_count=0, detail=""):
+def save_log(sess, operation, file_name="", file_size=0, record_count=0, detail="", commit=True):
     """写入备份操作记录"""
     from models.backup import BackupLog
     log = BackupLog(
@@ -106,7 +106,8 @@ def save_log(sess, operation, file_name="", file_size=0, record_count=0, detail=
         detail=detail,
     )
     sess.add(log)
-    sess.commit()
+    if commit:
+        sess.commit()
 
 
 # ============================================================
@@ -144,7 +145,6 @@ def export_all_data(sess):
     from models.vehicle import Vehicle, FuelRecord, VehicleExpense
     from models.item import Item
     from models.health import FamilyMember, HealthCheckup, HealthCheckupItem, DiseaseRecord, DiseaseVisit, HealthAttachment, HealthExpense
-    from models.auth import User
     from models.backup import BackupLog
 
     data = {
@@ -200,7 +200,6 @@ def export_all_data(sess):
                 "expenses": export_table(sess, "health_expenses", HealthExpense),
             },
             "system": {
-                "users": export_table(sess, "users", User),
                 "backup_logs": export_table(sess, "backup_logs", BackupLog),
                 "user_settings": export_table(sess, "user_settings"),
             },
@@ -291,7 +290,7 @@ def _build_table_config():
     }
 
 
-def import_module_data(sess, modules: dict) -> dict:
+def import_module_data(sess, modules: dict, *, commit: bool = True, strict: bool = False) -> dict:
     """导入所有模块数据（合并模式：存在则跳过）"""
     TABLE_CONFIG = _build_table_config()
 
@@ -348,22 +347,19 @@ def import_module_data(sess, modules: dict) -> dict:
                             val = None
                         filtered[col] = val
 
-                    if (pk_col == "id" and filtered.get("id") is not None
-                            and isinstance(filtered["id"], int)):
-                        max_id = sess.execute(
-                            text(f"SELECT MAX(id) FROM [{table_name}]")
-                        ).scalar() or 0
-                        if isinstance(max_id, int) and filtered["id"] <= max_id:
-                            filtered.pop("id", None)
-
                     obj = model(**filtered)
                     sess.add(obj)
                     stats["imported"] += 1
                 except Exception as e:
                     stats["errors"] += 1
                     print(f"[Backup Import] 导入失败 table={key} row={row_data.get(pk_col, row_data.get('id', '?'))}: {e}")
+                    if strict:
+                        raise ValueError(f"导入失败 table={key}: {e}") from e
 
-    sess.commit()
+    if commit:
+        sess.commit()
+    else:
+        sess.flush()
     return stats
 
 
@@ -399,15 +395,17 @@ def build_full_backup_zip() -> io.BytesIO:
         zf.writestr('backup_data.json', json_bytes)
         if tmp_db_path and os.path.exists(tmp_db_path):
             zf.write(tmp_db_path, 'allinone.db')
-        upload_dir = get_upload_dir()
-        data_dir = get_data_dir()
-        if os.path.isdir(upload_dir):
-            for root, dirs, files in os.walk(upload_dir):
+        upload_root = Path(get_upload_dir()).resolve()
+        if upload_root.is_dir():
+            for root, dirs, files in os.walk(upload_root):
                 files = [f for f in files if not f.startswith('._')]
                 for fname in files:
-                    full_path = os.path.join(root, fname)
-                    arcname = os.path.relpath(full_path, data_dir)
-                    zf.write(full_path, arcname)
+                    full_path = (Path(root) / fname).resolve()
+                    try:
+                        relative = full_path.relative_to(upload_root)
+                    except ValueError:
+                        continue
+                    zf.write(full_path, (Path("uploads") / relative).as_posix())
 
     if tmp_db_path and os.path.exists(tmp_db_path):
         try:
@@ -428,64 +426,117 @@ def restore_full_backup(content: bytes, original_filename: str) -> dict:
     buf = io.BytesIO(content)
 
     try:
-        zf = zipfile.ZipFile(buf, 'r')
+        zf = zipfile.ZipFile(buf, "r")
     except zipfile.BadZipFile:
         raise HTTPException(400, "ZIP 文件格式错误，无法解压")
 
-    # 校验 zip 大小限制（防压缩炸弹）
-    file_count, total_size = validate_zip_limits(zf)
-
-    json_entry = None
-    file_entries = []
-    for info in zf.infolist():
-        name = info.filename
-        if name.startswith('._') or info.is_dir():
-            continue
-        if name.endswith('backup_data.json'):
-            json_entry = info
-        elif name.startswith('uploads/'):
-            file_entries.append(info)
-
-    if not json_entry:
-        raise HTTPException(400, "备份包中未找到备份数据文件（backup_data.json）")
-
     try:
-        payload = json.loads(zf.read(json_entry.filename))
-    except json.JSONDecodeError:
-        raise HTTPException(400, "备份数据 JSON 格式错误")
+        validate_zip_limits(zf)
 
-    if payload.get("version") != BACKUP_VERSION:
-        raise HTTPException(400, f"不支持的备份版本: {payload.get('version')}")
+        json_entry = None
+        file_entries = []
+        upload_root = Path(get_upload_dir()).resolve()
+        for info in zf.infolist():
+            name = info.filename
+            if name.startswith("._") or info.is_dir():
+                continue
+            if name.endswith("backup_data.json"):
+                json_entry = info
+            elif name.startswith("uploads/"):
+                target = Path(safe_extract_path(str(upload_root), name))
+                file_entries.append((info, target))
 
-    # 还原 uploads 文件（防 Zip Slip）
-    data_dir = get_data_dir()
-    restored_files = 0
-    for entry in file_entries:
-        target = safe_extract_path(data_dir, entry.filename)
-        os.makedirs(os.path.dirname(target), exist_ok=True)
-        with zf.open(entry) as src, open(target, 'wb') as dst:
-            dst.write(src.read())
-        restored_files += 1
+        if not json_entry:
+            raise HTTPException(400, "备份包中未找到备份数据文件（backup_data.json）")
 
-    # 导入数据
-    modules = payload.get("modules", {})
-    sess = get_session_factory()()
-    try:
-        stats = import_module_data(sess, modules)
-        save_log(sess, "import_full", file_name=original_filename, file_size=len(content),
-                 record_count=stats["imported"],
-                 detail=f"完整恢复：新增{stats['imported']} 跳过{stats['skipped']} 失败{stats['errors']} 文件{restored_files}个")
-    except Exception as e:
-        sess.rollback()
-        raise HTTPException(500, f"数据导入失败: {str(e)}")
+        try:
+            payload = json.loads(zf.read(json_entry.filename))
+        except json.JSONDecodeError:
+            raise HTTPException(400, "备份数据 JSON 格式错误")
+
+        if payload.get("version") != BACKUP_VERSION:
+            raise HTTPException(400, f"不支持的备份版本: {payload.get('version')}")
+
+        modules = payload.get("modules", {})
+        if not isinstance(modules, dict) or not modules:
+            raise HTTPException(400, "备份数据中无模块数据")
+
+        upload_root.mkdir(parents=True, exist_ok=True)
+        # Keep staging on the uploads filesystem so os.replace remains atomic.
+        with tempfile.TemporaryDirectory(
+            prefix=".allinone_restore_",
+            dir=upload_root,
+        ) as tmp:
+            stage_root = Path(tmp) / "stage"
+            rollback_root = Path(tmp) / "rollback"
+
+            for entry, target in file_entries:
+                relative = target.relative_to(upload_root)
+                staged = stage_root / relative
+                staged.parent.mkdir(parents=True, exist_ok=True)
+                with zf.open(entry) as src, staged.open("wb") as dst:
+                    shutil.copyfileobj(src, dst)
+
+            sess = get_session_factory()()
+            deployed = []
+            try:
+                stats = import_module_data(sess, modules, commit=False, strict=True)
+                save_log(
+                    sess,
+                    "import_full",
+                    file_name=original_filename,
+                    file_size=len(content),
+                    record_count=stats["imported"],
+                    detail=(
+                        f"完整恢复：新增{stats['imported']} 跳过{stats['skipped']} "
+                        f"失败{stats['errors']} 文件{len(file_entries)}个"
+                    ),
+                    commit=False,
+                )
+                sess.flush()
+
+                for _, target in file_entries:
+                    relative = target.relative_to(upload_root)
+                    staged = stage_root / relative
+                    backup = rollback_root / relative
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    had_original = target.exists()
+                    if had_original:
+                        backup.parent.mkdir(parents=True, exist_ok=True)
+                        os.replace(target, backup)
+                    try:
+                        os.replace(staged, target)
+                    except Exception:
+                        if had_original and backup.exists():
+                            os.replace(backup, target)
+                        raise
+                    deployed.append((target, backup if had_original else None))
+
+                sess.commit()
+            except Exception as e:
+                sess.rollback()
+                for target, backup in reversed(deployed):
+                    try:
+                        if target.exists():
+                            target.unlink()
+                        if backup and backup.exists():
+                            target.parent.mkdir(parents=True, exist_ok=True)
+                            os.replace(backup, target)
+                    except OSError:
+                        pass
+                if isinstance(e, HTTPException):
+                    raise
+                raise HTTPException(500, f"完整恢复失败，数据和文件已回滚: {str(e)}")
+            finally:
+                sess.close()
     finally:
-        sess.close()
+        zf.close()
 
     return {
         "success": True,
-        "message": f"完整恢复完成：新增 {stats['imported']} 条，跳过 {stats['skipped']} 条，失败 {stats['errors']} 条，还原 {restored_files} 个文件",
+        "message": f"完整恢复完成：新增 {stats['imported']} 条，跳过 {stats['skipped']} 条，失败 {stats['errors']} 条，还原 {len(file_entries)} 个文件",
         "stats": stats,
-        "restored_files": restored_files,
+        "restored_files": len(file_entries),
     }
 
 

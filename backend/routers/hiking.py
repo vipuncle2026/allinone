@@ -19,7 +19,7 @@ from models.hiking import HikingActivity
 from services.gpx_parser import parse_gpx
 from services.fit_parser import parse_fit
 from services.tcx_parser import parse_tcx
-from services.upload_utils import safe_upload_path, safe_remove
+from services.upload_utils import safe_upload_path, safe_remove, safe_remove_upload
 
 router = APIRouter(prefix="/api/hiking", tags=["徒步"])
 
@@ -455,11 +455,8 @@ def delete_activity(activity_id: int, db: Session = Depends(get_db)):
     if not act:
         raise HTTPException(404, "活动不存在")
     # 同步删除原始上传文件
-    if act.file_path and os.path.isfile(act.file_path):
-        try:
-            os.remove(act.file_path)
-        except Exception:
-            pass
+    if act.file_path:
+        safe_remove_upload(act.file_path)
     db.delete(act)
     db.commit()
     return {"ok": True}

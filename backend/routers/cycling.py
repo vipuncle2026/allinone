@@ -18,7 +18,7 @@ from sqlalchemy import func
 from database import get_db, get_upload_dir, get_data_dir
 from models.cycling import CyclingActivity, Bike, BikeMaintenanceRecord
 from services.gpx_parser import parse_gpx
-from services.upload_utils import safe_upload_path, safe_remove
+from services.upload_utils import safe_upload_path, safe_remove, safe_remove_upload
 from services.fit_parser import parse_fit
 
 router = APIRouter(prefix="/api/cycling", tags=["骑行"])
@@ -422,11 +422,8 @@ def delete_activity(activity_id: int, db: Session = Depends(get_db)):
     if not act:
         raise HTTPException(404, "活动不存在")
     # 同步删除原始上传文件
-    if act.file_path and os.path.isfile(act.file_path):
-        try:
-            os.remove(act.file_path)
-        except Exception:
-            pass  # 文件删除失败不阻断记录删除
+    if act.file_path:
+        safe_remove_upload(act.file_path)
     db.delete(act)
     db.commit()
     return {"ok": True}

@@ -41,6 +41,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "remote-preload.js",
       "settings.html",
       "settings-preload.js",
       "error.html",

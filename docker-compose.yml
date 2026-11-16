@@ -35,7 +35,8 @@ services:
       # 左边 = 宿主机端口（按需修改，例：80 被占用时改为 8080）
       - "${PORT:-8080}:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost/"]
       interval: 10s

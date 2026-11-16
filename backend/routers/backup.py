@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api/backup", tags=["backup"])
 
 @router.get("/export")
 def export_all():
-    """导出所有模块数据为 JSON（含系统表：users、backup_logs）"""
+    """导出所有模块数据为 JSON；认证凭据不会进入备份。"""
     sess = get_session_factory()()
     try:
         data = backup_service.export_all_data(sess)
@@ -82,10 +82,17 @@ async def import_all(file: UploadFile = File(...)):
 
     sess = get_session_factory()()
     try:
-        stats = backup_service.import_module_data(sess, modules)
-        backup_service.save_log(sess, "import", file_name=file.filename, file_size=len(content),
-                                record_count=stats["imported"],
-                                detail=f"新增{stats['imported']} 跳过{stats['skipped']} 失败{stats['errors']}")
+        stats = backup_service.import_module_data(sess, modules, commit=False, strict=True)
+        backup_service.save_log(
+            sess,
+            "import",
+            file_name=file.filename,
+            file_size=len(content),
+            record_count=stats["imported"],
+            detail=f"新增{stats['imported']} 跳过{stats['skipped']} 失败{stats['errors']}",
+            commit=False,
+        )
+        sess.commit()
     except Exception as e:
         sess.rollback()
         raise HTTPException(500, f"导入失败: {str(e)}")

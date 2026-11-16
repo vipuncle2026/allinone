@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 from database import get_db, get_upload_dir
 from models.item import Item, ITEM_CATEGORIES
+from services.upload_utils import resolve_upload_path, safe_remove_upload
 
 router = APIRouter(prefix="/api/item", tags=["物品管理"])
 
@@ -176,6 +177,8 @@ def get_item(item_id: int, db: Session = Depends(get_db)):
 @router.post("/create")
 def create_item(data: ItemCreate, db: Session = Depends(get_db)):
     """创建物品"""
+    if data.photo_path:
+        resolve_upload_path(data.photo_path, require_exists=True)
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     item = Item(**data.model_dump(), created_at=now, updated_at=now)
     db.add(item)
@@ -191,6 +194,8 @@ def update_item(item_id: int, data: ItemUpdate, db: Session = Depends(get_db)):
     if not item:
         raise HTTPException(404, "物品不存在")
     update_data = data.model_dump(exclude_none=True)
+    if update_data.get("photo_path"):
+        resolve_upload_path(update_data["photo_path"], require_exists=True)
     for k, v in update_data.items():
         setattr(item, k, v)
     item.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -204,15 +209,8 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
     item = db.query(Item).filter(Item.id == item_id).first()
     if not item:
         raise HTTPException(404, "物品不存在")
-    # 删除关联图片文件（photo_path 格式: uploads/items/xxx.jpg）
     if item.photo_path:
-        # 去掉 "uploads/" 前缀，用 get_upload_dir 拼完整路径
-        rel_path = item.photo_path
-        if rel_path.startswith("uploads/"):
-            rel_path = rel_path[len("uploads/"):]
-        full_path = os.path.join(get_upload_dir(), rel_path)
-        if os.path.exists(full_path):
-            os.remove(full_path)
+        safe_remove_upload(item.photo_path)
     db.delete(item)
     db.commit()
     return {"message": "删除成功"}
@@ -252,12 +250,7 @@ def batch_delete_items(payload: dict, db: Session = Depends(get_db)):
     # 删除关联图片文件
     for item in items:
         if item.photo_path:
-            rel_path = item.photo_path
-            if rel_path.startswith("uploads/"):
-                rel_path = rel_path[len("uploads/"):]
-            full_path = os.path.join(get_upload_dir(), rel_path)
-            if os.path.exists(full_path):
-                os.remove(full_path)
+            safe_remove_upload(item.photo_path)
         db.delete(item)
     db.commit()
     return {"message": f"删除成功，共 {len(items)} 条"}
@@ -284,19 +277,15 @@ async def upload_photo(file: UploadFile = File(...)):
 @router.delete("/photo")
 def delete_photo(path: str, db: Session = Depends(get_db)):
     """删除物品照片"""
+    target = resolve_upload_path(path)
     # 从所有物品中清除该图片引用
     items = db.query(Item).filter(Item.photo_path == path).all()
     for item in items:
         item.photo_path = ""
         item.updated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     db.commit()
-    # 删除文件（path 格式: uploads/items/xxx.jpg）
-    rel_path = path
-    if rel_path.startswith("uploads/"):
-        rel_path = rel_path[len("uploads/"):]
-    full_path = os.path.join(get_upload_dir(), rel_path)
-    if os.path.exists(full_path):
-        os.remove(full_path)
+    if target.is_file():
+        target.unlink()
     return {"message": "照片已删除"}
 
 
@@ -322,7 +311,6 @@ def import_items(data: dict, db: Session = Depends(get_db)):
     if mode == "overwrite":
         # 清空旧数据
         db.query(Item).delete()
-        db.commit()
 
     for item_data in items_data:
         if not item_data.get("name"):

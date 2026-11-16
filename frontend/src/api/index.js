@@ -55,6 +55,22 @@ export function invalidateCache(prefix) {
   keysToDelete.forEach((k) => sessionStorage.removeItem(k))
 }
 
+export async function clearClientCaches() {
+  const keysToDelete = []
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i)
+    if (key?.startsWith('aio_cache:')) keysToDelete.push(key)
+  }
+  keysToDelete.forEach((key) => sessionStorage.removeItem(key))
+
+  if ('caches' in window) {
+    const names = await caches.keys()
+    await Promise.all(
+      names.filter((name) => name.startsWith('allinone-')).map((name) => caches.delete(name))
+    )
+  }
+}
+
 // ─── Token 自动附加 ─────────────────────────────────────────
 http.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
@@ -86,6 +102,7 @@ http.interceptors.response.use(
       console.warn('[401] 触发跳转，请求:', err.config?.url)
       localStorage.removeItem('token')
       localStorage.removeItem('user')
+      clearClientCaches().catch(() => {})
       if (window.location.pathname !== '/login') {
         if (!_401AlertShown) {
           _401AlertShown = true
@@ -248,11 +265,13 @@ export const fundApi = {
   /** 添加自选（可同时设置持仓） */
   add(code, groupId = 'default', shares = 0, costNav = 0) {
     return http.post('/fund/add', { code, group_id: groupId, shares, cost_nav: costNav })
+      .then((res) => { invalidateCache('/fund'); return res })
   },
 
   /** 移出自选 */
   remove(code) {
     return http.delete(`/fund/${code}`)
+      .then((res) => { invalidateCache('/fund'); return res })
   },
 
   /** 刷新所有估值（刷新后清除相关缓存） */
@@ -279,11 +298,13 @@ export const fundApi = {
     const payload = { shares, cost_nav: costNav }
     if (type) payload.type = type
     return http.put(`/fund/${code}/holding`, payload)
+      .then((res) => { invalidateCache('/fund'); return res })
   },
 
   /** 修改分组 */
   changeGroup(code, groupId) {
     return http.put(`/fund/${code}/group`, { group_id: groupId })
+      .then((res) => { invalidateCache('/fund'); return res })
   },
 
   /** 持仓汇总（5 分钟缓存） */
@@ -299,16 +320,19 @@ export const fundApi = {
   /** 创建分组 */
   createGroup(name, color = '#6b7280') {
     return http.post('/fund/groups', { name, color })
+      .then((res) => { invalidateCache('/fund'); return res })
   },
 
   /** 编辑分组 */
   updateGroup(groupId, name, color) {
     return http.put(`/fund/groups/${groupId}`, { name, color })
+      .then((res) => { invalidateCache('/fund'); return res })
   },
 
   /** 删除分组 */
   deleteGroup(groupId) {
     return http.delete(`/fund/groups/${groupId}`)
+      .then((res) => { invalidateCache('/fund'); return res })
   },
 
   /** 导出 */
@@ -319,6 +343,7 @@ export const fundApi = {
   /** 导入 */
   importData(funds) {
     return http.post('/fund/import', funds)
+      .then((res) => { invalidateCache('/fund'); return res })
   },
 
   /** 手动触发今日持仓快照 */
@@ -344,14 +369,17 @@ export const fundApi = {
   /** 新增交易记录 */
   createTransaction(data) {
     return http.post('/fund/transaction', data)
+      .then((res) => { invalidateCache('/fund'); return res })
   },
   /** 编辑交易记录 */
   updateTransaction(id, data) {
     return http.put(`/fund/transaction/${id}`, data)
+      .then((res) => { invalidateCache('/fund'); return res })
   },
   /** 删除交易记录 */
   deleteTransaction(id) {
     return http.delete(`/fund/transaction/${id}`)
+      .then((res) => { invalidateCache('/fund'); return res })
   },
 }
 

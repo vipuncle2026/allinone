@@ -71,8 +71,8 @@
         <a-form-item label="安全码" name="security_code" :rules="[{ required: true, message: '请输入安全码' }]">
           <a-input-password v-model:value="resetForm.security_code" placeholder="安全码" />
         </a-form-item>
-        <a-form-item label="新密码" name="new_password" :rules="[{ required: true, message: '请输入新密码' }, { min: 4, message: '至少 4 个字符' }]">
-          <a-input-password v-model:value="resetForm.new_password" placeholder="新密码（至少 4 个字符）" />
+        <a-form-item label="新密码" name="new_password" :rules="[{ required: true, message: '请输入新密码' }, { min: 8, message: '至少 8 个字符' }]">
+          <a-input-password v-model:value="resetForm.new_password" placeholder="新密码（至少 8 个字符）" />
         </a-form-item>
         <a-form-item label="确认新密码" name="confirm_password" :rules="[
           { required: true, message: '请确认新密码' },
@@ -95,7 +95,7 @@ import { reactive, ref, h, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue'
-import { authApi, markJustLoggedIn } from '@/api'
+import { authApi, clearClientCaches, markJustLoggedIn } from '@/api'
 
 const router = useRouter()
 const loading = ref(false)
@@ -130,6 +130,7 @@ async function handleLogin() {
     const { data } = await authApi.login(form.username, form.password)
     localStorage.setItem('token', data.token)
     localStorage.setItem('user', JSON.stringify(data.user))
+    await clearClientCaches()
     // 记住用户名
     if (rememberMe.value) {
       localStorage.setItem('saved_username', form.username)
@@ -137,7 +138,6 @@ async function handleLogin() {
       localStorage.removeItem('saved_username')
     }
     markJustLoggedIn()
-    console.log('[登录] token 已保存:', data.token?.substring(0, 16) + '...', '准备跳转 /dashboard')
     message.success('登录成功')
     router.push('/dashboard')
   } catch (e) {

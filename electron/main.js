@@ -17,6 +17,20 @@ let settingsWindow = null
 let apiProcess = null
 let actualPort = API_PORT
 let config = {}
+let allowQuit = false
+let stoppingApi = null
+
+const hasSingleInstanceLock = app.requestSingleInstanceLock()
+if (!hasSingleInstanceLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.show()
+    mainWindow.focus()
+  })
+}
 
 // ── 连接配置（config.json）────────────────────────────────────────
 
@@ -369,10 +383,19 @@ function createWindow() {
     title: 'All-in-One',
     icon: path.join(__dirname, 'build', 'icon.png'),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, isRemoteMode() ? 'remote-preload.js' : 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
+      sandbox: true,
     },
+  })
+
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (isAllowedExternalUrl(url)) shell.openExternal(url)
+    return { action: 'deny' }
+  })
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!isAllowedAppUrl(url)) event.preventDefault()
   })
 
   // 本地模式清缓存，防止加载旧版本 chunk；远程模式交给服务端 ETag 校验
@@ -477,13 +500,8 @@ function openSettingsWindow() {
 
 /** 重启应用（切换模式后生效） */
 function relaunchApp() {
-  if (apiProcess) {
-    try { apiProcess.kill('SIGTERM') } catch { /* ignore */ }
-    apiProcess = null
-  }
   app.relaunch()
-  tray = null
-  app.exit(0)
+  quitApp()
 }
 
 // ── 托盘 ──────────────────────────────────────────────────────────
@@ -557,7 +575,7 @@ function setAppMenu() {
         { label: '隐藏其他', role: 'hideOthers' },
         { label: '显示全部', role: 'unhide' },
         { type: 'separator' },
-        { label: '退出 All-in-One', role: 'quit' },
+        { label: '退出 All-in-One', click: quitApp },
       ],
     },
     {
@@ -603,23 +621,69 @@ function setAppMenu() {
 
 // ── 退出清理 ──────────────────────────────────────────────────────
 
-function quitApp() {
-  if (apiProcess) {
-    console.log('[APP] 正在关闭后端进程...')
-    apiProcess.kill('SIGTERM')
-    // 给 3 秒优雅关闭，之后强杀
-    const forceKill = setTimeout(() => {
-      if (apiProcess) {
-        apiProcess.kill('SIGKILL')
-        apiProcess = null
-      }
-    }, 3000)
-    apiProcess.on('close', () => {
+function stopApiProcess() {
+  if (!apiProcess) return Promise.resolve()
+  if (stoppingApi) return stoppingApi
+
+  const proc = apiProcess
+  console.log('[APP] 正在关闭后端进程...')
+  stoppingApi = new Promise((resolve) => {
+    let settled = false
+    const finish = () => {
+      if (settled) return
+      settled = true
       clearTimeout(forceKill)
-      apiProcess = null
-    })
-  }
+      if (apiProcess === proc) apiProcess = null
+      stoppingApi = null
+      resolve()
+    }
+    const forceKill = setTimeout(() => {
+      try { proc.kill('SIGKILL') } catch { /* ignore */ }
+      finish()
+    }, 3000)
+    proc.once('close', finish)
+    try {
+      proc.kill('SIGTERM')
+    } catch {
+      finish()
+    }
+  })
+  return stoppingApi
+}
+
+function quitApp() {
+  tray = null
   app.quit()
+}
+
+function isAllowedExternalUrl(raw) {
+  try {
+    return ['http:', 'https:', 'mailto:'].includes(new URL(raw).protocol)
+  } catch {
+    return false
+  }
+}
+
+function isErrorPage(raw) {
+  try {
+    const url = new URL(raw)
+    return url.protocol === 'file:' && decodeURIComponent(url.pathname) === path.join(__dirname, 'error.html')
+  } catch {
+    return false
+  }
+}
+
+function isAllowedAppUrl(raw) {
+  if (isErrorPage(raw)) return true
+  try {
+    const target = new URL(raw)
+    const base = isRemoteMode()
+      ? new URL(config.serverUrl)
+      : new URL(app.isPackaged ? `http://127.0.0.1:${actualPort}` : 'http://localhost:5173')
+    return target.origin === base.origin
+  } catch {
+    return false
+  }
 }
 
 // ── IPC 处理 ──────────────────────────────────────────────────────
@@ -629,7 +693,13 @@ ipcMain.handle('get-api-port', () => actualPort)
 
 // 外部链接用系统浏览器打开
 ipcMain.handle('open-external', (_event, url) => {
-  shell.openExternal(url)
+  if (!isAllowedAppUrl(_event.senderFrame.url)) {
+    throw new Error('不受信任的页面不能打开外部链接')
+  }
+  if (!isAllowedExternalUrl(url)) {
+    throw new Error('不允许打开该协议')
+  }
+  return shell.openExternal(url)
 })
 
 // 连接设置：读取当前配置
@@ -675,7 +745,8 @@ ipcMain.handle('test-connection', async (_e, raw) => {
 })
 
 // 连接失败页：重试
-ipcMain.handle('retry-connect', async () => {
+ipcMain.handle('retry-connect', async (event) => {
+  if (!isErrorPage(event.senderFrame.url)) throw new Error('仅连接错误页可执行重试')
   if (!mainWindow || mainWindow.isDestroyed()) return { ok: false }
   if (isRemoteMode()) {
     const ok = await checkServer(config.serverUrl)
@@ -690,14 +761,19 @@ ipcMain.handle('retry-connect', async () => {
 })
 
 // 连接失败页：切回本地模式
-ipcMain.handle('switch-to-local', () => {
+ipcMain.handle('switch-to-local', (event) => {
+  if (!isErrorPage(event.senderFrame.url)) throw new Error('仅连接错误页可切换模式')
   saveConfig({ serverUrl: '' })
   setTimeout(() => relaunchApp(), 200)
   return { ok: true }
 })
 
 // 打开连接设置窗口
-ipcMain.handle('open-settings', () => {
+ipcMain.handle('open-settings', (event) => {
+  const senderUrl = event.senderFrame.url
+  if (!isErrorPage(senderUrl) && (!isAllowedAppUrl(senderUrl) || isRemoteMode())) {
+    throw new Error('不受信任的页面不能打开本机设置')
+  }
   openSettingsWindow()
   return { ok: true }
 })
@@ -712,9 +788,21 @@ app.on('window-all-closed', () => {
   }
 })
 
-app.on('before-quit', () => {
-  // 设置退出标志，允许真正关闭窗口
+app.on('before-quit', (event) => {
   tray = null
+  if (allowQuit || !apiProcess) return
+  event.preventDefault()
+  stopApiProcess().finally(() => {
+    allowQuit = true
+    app.quit()
+  })
+})
+
+app.on('will-quit', () => {
+  if (apiProcess) {
+    try { apiProcess.kill('SIGKILL') } catch { /* ignore */ }
+    apiProcess = null
+  }
 })
 
 app.on('activate', () => {
@@ -725,6 +813,7 @@ app.on('activate', () => {
 })
 
 app.whenReady().then(async () => {
+  if (!hasSingleInstanceLock) return
   try {
     console.log('[APP] 启动 All-in-One 桌面端...')
 

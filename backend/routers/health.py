@@ -13,6 +13,7 @@ from models.health import (
     FamilyMember, HealthCheckup, HealthCheckupItem, DiseaseRecord,
     DiseaseVisit, HealthAttachment, HealthExpense,
 )
+from services.upload_utils import safe_remove_upload
 
 router = APIRouter(prefix="/api/health", tags=["健康管理"])
 
@@ -28,15 +29,7 @@ EXPENSE_REF_TYPES = ("checkup", "disease", "visit")
 # ─── 附件工具 ───────────────────────────────────────────
 
 def _attachment_file_delete(att: HealthAttachment):
-    rel_path = att.file_path
-    if rel_path.startswith("uploads/"):
-        rel_path = rel_path[len("uploads/"):]
-    full_path = os.path.join(get_upload_dir(), rel_path)
-    if os.path.exists(full_path):
-        try:
-            os.remove(full_path)
-        except OSError:
-            pass
+    safe_remove_upload(att.file_path)
 
 
 def _attachment_to_dict(att: HealthAttachment) -> dict:

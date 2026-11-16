@@ -692,7 +692,6 @@ def import_backup(data: dict, db: Session = Depends(get_db)):
         db.query(FinanceAccount).delete()
         db.query(FinanceTransaction).delete()
         db.query(AssetSnapshot).delete()
-        db.commit()
 
     # 兼容 money 的 "assets" 和 allinone 的 "accounts"
     account_list = backup.get("assets", backup.get("accounts", []))

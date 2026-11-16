@@ -161,13 +161,13 @@
             <a-tooltip
               v-if="connMode"
               :title="connMode.mode === 'remote'
-                ? `网络模式：已连接 ${connMode.host}，数据与 NAS / PWA 实时一致（点击修改连接设置）`
+                ? `网络模式：已连接 ${connMode.host}，可从应用菜单修改连接设置`
                 : `本机模式：后端端口 ${connMode.host}，数据只保存在这台 Mac，不与其他设备同步（点击修改连接设置）`"
             >
               <span
                 class="conn-badge"
                 :class="connMode.mode"
-                @click="openConnSettings"
+                @click="connMode.mode === 'local' && openConnSettings()"
               >
                 <CloudServerOutlined v-if="connMode.mode === 'remote'" />
                 <DesktopOutlined v-else />
@@ -229,7 +229,7 @@
             <a-input-password v-model:value="pwdForm.old" placeholder="输入旧密码" />
           </a-form-item>
           <a-form-item label="新密码">
-            <a-input-password v-model:value="pwdForm.new" placeholder="至少 4 个字符" />
+            <a-input-password v-model:value="pwdForm.new" placeholder="至少 8 个字符" />
           </a-form-item>
           <a-form-item label="确认新密码">
             <a-input-password v-model:value="pwdForm.confirm" placeholder="再次输入新密码" />
@@ -335,7 +335,7 @@ import {
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import './styles/variables.css'
 import './styles/global.css'
-import { authApi, setAppRouter } from '@/api'
+import { authApi, clearClientCaches, setAppRouter } from '@/api'
 import axios from 'axios'
 import { Modal } from 'ant-design-vue'
 
@@ -518,6 +518,7 @@ function onUserMenu({ key }) {
         try { await authApi.logout() } catch {}
         localStorage.removeItem('token')
         localStorage.removeItem('user')
+        await clearClientCaches()
         router.push('/login')
       },
     })
@@ -529,8 +530,8 @@ async function handleChangePwd() {
     Modal.warning({ title: '提示', content: '请填写旧密码和新密码' })
     return
   }
-  if (pwdForm.new.length < 4) {
-    Modal.warning({ title: '提示', content: '新密码至少 4 个字符' })
+  if (pwdForm.new.length < 8) {
+    Modal.warning({ title: '提示', content: '新密码至少 8 个字符' })
     return
   }
   if (pwdForm.new !== pwdForm.confirm) {

@@ -83,7 +83,7 @@ npm run dev
 
 ```
 用户名：admin
-密码：admin123
+密码：admin
 ```
 
 > ⚠️ 首次登录后请立即修改密码。
@@ -115,7 +115,7 @@ cd allinone
 
 ```bash
 # 重要：容器需要预建目录
-mkdir -p data uploads/cycling uploads/hiking uploads/running
+mkdir -p data uploads/cycling uploads/hiking uploads/running uploads/health uploads/items
 ```
 
 ### 3. 构建并启动
@@ -177,6 +177,8 @@ mkdir -p /mnt/user/appdata/allinone/data
 mkdir -p /mnt/user/appdata/allinone/uploads/cycling
 mkdir -p /mnt/user/appdata/allinone/uploads/hiking
 mkdir -p /mnt/user/appdata/allinone/uploads/running
+mkdir -p /mnt/user/appdata/allinone/uploads/health
+mkdir -p /mnt/user/appdata/allinone/uploads/items
 ```
 
 ### 4. 拉取或上传代码
@@ -322,7 +324,7 @@ docker login docker.fnnas.com
 **解决**：
 ```bash
 # 确保目录属主正确
-chmod -R 777 uploads/
+chmod -R u+rwX,go-rwx uploads/
 ```
 
 ### Q5：数据初始化后丢失了账号
@@ -330,7 +332,7 @@ chmod -R 777 uploads/
 默认管理员账号：
 ```
 用户名：admin
-密码：admin123
+密码：admin
 ```
 
 ### Q6：如何修改默认端口？

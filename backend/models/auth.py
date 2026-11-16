@@ -10,7 +10,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(128), nullable=False)
-    security_code = Column(String(64), nullable=True, comment="安全码，用于忘记密码时重置")
+    security_code = Column(String(128), nullable=True, comment="安全码，用于忘记密码时重置")
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 

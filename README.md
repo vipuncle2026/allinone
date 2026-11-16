@@ -14,11 +14,11 @@
 # 克隆后，进入项目目录
 cd allinone
 
-# 一键启动（自动安装依赖、启动前后端）
+# 已安装依赖后，一键启动前后端
 bash start.sh
 ```
 
-访问 http://localhost:5173，默认管理员账号：`admin` / `admin123`
+访问 http://localhost:5173，默认管理员账号：`admin` / `admin`
 
 ---
 
@@ -261,7 +261,7 @@ allinone/
 | 地图 | Leaflet + 高德地图瓦片 |
 | 后端框架 | FastAPI + SQLAlchemy |
 | 坐标系 | WGS-84 ↔ GCJ-02 双向转换 |
-| 运动格式 | gpxpy / fitparse / tcxparser |
+| 运动格式 | gpxpy / fitparse / 标准库 XML 解析 |
 | 容器化 | Docker + Docker Compose |
 | 反向代理 | Nginx（前端 + API 统一入口） |
 
