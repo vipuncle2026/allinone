@@ -81,4 +81,3 @@ Icon?
 *.tar.gz
 *.zip
 frontend.log
-docker-compose.image.yml

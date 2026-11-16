@@ -276,7 +276,8 @@
           <div class="reset-warning-text">
             <div class="reset-warning-title">清空所有业务数据</div>
             <div class="reset-warning-desc">
-              将删除财务、骑行、徒步、跑步、旅行、基金、车辆、物品共 8 个模块的全部数据记录。
+              将删除财务、骑行、徒步、跑步、旅行、基金、车辆、物品、健康共 9 个模块的全部数据记录，
+              并清理已上传的体检报告、就诊资料、成员头像与物品照片。
               此操作<strong>不可撤销</strong>，请务必先导出备份！
             </div>
           </div>
@@ -324,6 +325,7 @@ const MODULES = [
   { name: '基金管理', icon: '📊', theme: 'amber', color: '#f59e0b', tables: ['fund_library', 'fund_favorites', 'fund_groups', 'fund_transactions', 'fund_snapshots', 'fund_snapshot_items'] },
   { name: '车辆管理', icon: '🚗', theme: 'rose', color: '#f43f5e', tables: ['vehicles', 'fuel_records', 'vehicle_expenses'] },
   { name: '物品管理', icon: '📦', theme: 'slate', color: '#64748b', tables: ['important_items'] },
+  { name: '健康管理', icon: '❤️', theme: 'pink', color: '#ec4899', tables: ['family_members', 'health_checkups', 'health_checkup_items', 'disease_records', 'disease_visits', 'health_attachments', 'health_expenses'] },
 ]
 
 const TABLE_LABELS = {
@@ -350,6 +352,13 @@ const TABLE_LABELS = {
   fuel_records: '加油/充电记录',
   vehicle_expenses: '车辆费用',
   important_items: '重要物品',
+  family_members: '家庭成员',
+  health_checkups: '健康体检',
+  health_checkup_items: '体检指标明细',
+  disease_records: '疾病档案',
+  disease_visits: '就诊记录',
+  health_attachments: '检查报告附件',
+  health_expenses: '医疗花费',
 }
 
 const detailColumns = [
@@ -551,7 +560,7 @@ async function beforeImport(file) {
 async function handleReset() {
   Modal.confirm({
     title: '⚠️ 确认初始化',
-    content: '此操作将清空所有模块的业务数据，包括财务、骑行、徒步、跑步、旅行、基金、车辆、物品的全部记录。此操作不可撤销！',
+    content: '此操作将清空所有模块的业务数据，包括财务、骑行、徒步、跑步、旅行、基金、车辆、物品、健康的全部记录，并清理相关上传文件。此操作不可撤销！',
     okText: '确认清空',
     okType: 'danger',
     cancelText: '取消',
@@ -749,6 +758,11 @@ async function handleCleanupFiles() {
   border-color: #e2e8f0;
 }
 .module-stat-slate .module-stat-count { color: #475569; }
+.module-stat-pink {
+  background: #fdf2f8;
+  border-color: #fbcfe8;
+}
+.module-stat-pink .module-stat-count { color: #db2777; }
 
 /* ===== 操作卡片 ===== */
 .action-card {

@@ -189,6 +189,31 @@ const routes = [
     name: 'travel-stats',
     component: () => import('@/views/travel/TravelStats.vue')
   },
+  // 健康管理模块
+  {
+    path: '/health',
+    redirect: '/health/members'
+  },
+  {
+    path: '/health/members',
+    name: 'health-members',
+    component: () => import('@/views/health/HealthMembers.vue')
+  },
+  {
+    path: '/health/checkup',
+    name: 'health-checkup',
+    component: () => import('@/views/health/HealthCheckup.vue')
+  },
+  {
+    path: '/health/disease',
+    name: 'health-disease',
+    component: () => import('@/views/health/HealthDisease.vue')
+  },
+  {
+    path: '/health/stats',
+    name: 'health-stats',
+    component: () => import('@/views/health/HealthStats.vue')
+  },
   // 备份中心
   {
     path: '/backup',

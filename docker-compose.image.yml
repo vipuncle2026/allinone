@@ -1,0 +1,38 @@
+# ===================================================
+# 镜像版 docker-compose（NAS/服务器直接用镜像，无需编译）
+#
+# 用法：
+#   1. 替换下面的 YOUR_USERNAME 为你的 GitHub 用户名
+#   2. mkdir -p data uploads
+#   3. docker compose -f docker-compose.image.yml up -d
+# ===================================================
+
+services:
+  backend:
+    image: ghcr.io/vipuncle2026/allinone-backend:latest
+    container_name: allinone-backend
+    restart: unless-stopped
+    environment:
+      - DB_PATH=/app/data/allinone.db
+      - UPLOAD_DIR=/app/uploads
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    networks:
+      - allinone-net
+
+  frontend:
+    image: ghcr.io/vipuncle2026/allinone-frontend:latest
+    container_name: allinone-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - allinone-net
+
+networks:
+  allinone-net:
+    driver: bridge

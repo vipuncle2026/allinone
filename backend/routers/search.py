@@ -216,4 +216,101 @@ def global_search(
             "url": "/vehicle/list",
         })
 
+    # 8. 健康管理
+    from models.health import FamilyMember, HealthCheckup, HealthCheckupItem, DiseaseRecord, DiseaseVisit
+
+    # 家庭成员
+    members = db.query(FamilyMember).filter(
+        or_(
+            FamilyMember.name.ilike(keyword),
+            FamilyMember.relationship.ilike(keyword),
+            FamilyMember.allergy_history.ilike(keyword),
+            FamilyMember.medical_history.ilike(keyword),
+            FamilyMember.notes.ilike(keyword),
+        )
+    ).limit(limit).all()
+    for m in members:
+        results.append({
+            "module": "健康", "icon": "❤️", "type": "家庭成员",
+            "title": m.name,
+            "subtitle": f"{m.relationship or ''}{' · ' + m.blood_type + '型' if m.blood_type else ''}",
+            "date": m.birthday or "",
+            "url": "/health/members",
+        })
+
+    # 疾病档案
+    diseases = db.query(DiseaseRecord).filter(
+        or_(
+            DiseaseRecord.disease_name.ilike(keyword),
+            DiseaseRecord.hospital.ilike(keyword),
+            DiseaseRecord.doctor.ilike(keyword),
+            DiseaseRecord.notes.ilike(keyword),
+        )
+    ).limit(limit).all()
+    for d in diseases:
+        mem = db.query(FamilyMember).filter(FamilyMember.id == d.member_id).first()
+        results.append({
+            "module": "健康", "icon": "🩺", "type": "疾病档案",
+            "title": d.disease_name,
+            "subtitle": f"{mem.name if mem else ''} · {d.status or ''}",
+            "date": d.diagnosed_date or "",
+            "url": "/health/disease",
+        })
+
+    # 就诊记录
+    visits = db.query(DiseaseVisit).filter(
+        or_(
+            DiseaseVisit.hospital.ilike(keyword),
+            DiseaseVisit.department.ilike(keyword),
+            DiseaseVisit.doctor.ilike(keyword),
+            DiseaseVisit.diagnosis.ilike(keyword),
+            DiseaseVisit.treatment.ilike(keyword),
+            DiseaseVisit.notes.ilike(keyword),
+        )
+    ).order_by(DiseaseVisit.visit_date.desc()).limit(limit).all()
+    for v in visits:
+        dis = db.query(DiseaseRecord).filter(DiseaseRecord.id == v.disease_id).first()
+        mem = db.query(FamilyMember).filter(FamilyMember.id == v.member_id).first()
+        results.append({
+            "module": "健康", "icon": "🏥", "type": "就诊记录",
+            "title": v.diagnosis or f"{dis.disease_name if dis else ''} 就诊",
+            "subtitle": f"{mem.name if mem else ''} · {v.hospital or ''} {v.department or ''}".strip(),
+            "date": v.visit_date or "",
+            "url": "/health/disease",
+        })
+
+    # 体检记录
+    checkups = db.query(HealthCheckup).filter(
+        or_(
+            HealthCheckup.hospital.ilike(keyword),
+            HealthCheckup.checkup_type.ilike(keyword),
+            HealthCheckup.summary.ilike(keyword),
+            HealthCheckup.notes.ilike(keyword),
+        )
+    ).order_by(HealthCheckup.checkup_date.desc()).limit(limit).all()
+    for c in checkups:
+        mem = db.query(FamilyMember).filter(FamilyMember.id == c.member_id).first()
+        results.append({
+            "module": "健康", "icon": "📋", "type": "健康体检",
+            "title": f"{c.checkup_type} · {c.checkup_date}",
+            "subtitle": f"{mem.name if mem else ''} · {c.hospital or ''}",
+            "date": c.checkup_date or "",
+            "url": "/health/checkup",
+        })
+
+    # 体检指标
+    items = db.query(HealthCheckupItem).filter(
+        HealthCheckupItem.item_name.ilike(keyword)
+    ).order_by(HealthCheckupItem.checkup_date.desc()).limit(limit).all()
+    for it in items:
+        mem = db.query(FamilyMember).filter(FamilyMember.id == it.member_id).first()
+        val = f"{it.value:g}{it.unit}" if it.value is not None else (it.text_value or "")
+        results.append({
+            "module": "健康", "icon": "🔬", "type": "体检指标",
+            "title": f"{it.item_name} {val}",
+            "subtitle": f"{mem.name if mem else ''} · {it.abnormal_flag or ''}",
+            "date": it.checkup_date or "",
+            "url": "/health/checkup",
+        })
+
     return {"keyword": q, "total": len(results), "results": results}

@@ -117,6 +117,15 @@
             <a-menu-item key="item-list">物品清单</a-menu-item>
           </a-sub-menu>
 
+          <a-sub-menu key="health">
+            <template #icon><HeartOutlined /></template>
+            <template #title>健康管理</template>
+            <a-menu-item key="health-members">成员管理</a-menu-item>
+            <a-menu-item key="health-checkup">健康体检</a-menu-item>
+            <a-menu-item key="health-disease">疾病管理</a-menu-item>
+            <a-menu-item key="health-stats">统计分析</a-menu-item>
+          </a-sub-menu>
+
           <a-menu-item key="backup-center">
             <template #icon><CloudServerOutlined /></template>
             <span>备份中心</span>
@@ -242,7 +251,7 @@
           <a-input
             ref="searchInputRef"
             v-model:value="searchKeyword"
-            placeholder="搜索旅行、骑行、徒步、财务、基金、车辆、物品..."
+            placeholder="搜索旅行、骑行、徒步、财务、基金、车辆、物品、健康..."
             size="large"
             :bordered="false"
             @pressEnter="doSearch"
@@ -303,6 +312,7 @@ import {
   SearchOutlined,
   LogoutOutlined,
   TrophyOutlined,
+  HeartOutlined,
 } from '@ant-design/icons-vue'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import './styles/variables.css'
@@ -377,6 +387,7 @@ const menuGroupMap = {
   'vehicle-list': 'vehicle', 'vehicle-fuel': 'vehicle', 'vehicle-stats': 'vehicle',
   'travel': 'travel', 'travel-home': 'travel', 'travel-stats': 'travel',
   'item-list': 'item',
+  'health-members': 'health', 'health-checkup': 'health', 'health-disease': 'health', 'health-stats': 'health',
 }
 
 // 详情页没有对应的菜单项，映射到父级列表页的 key
@@ -415,6 +426,10 @@ const pageTitles = {
   'travel': '旅行管理',
   'travel-home': '旅行总览',
   'travel-stats': '统计分析',
+  'health-members': '成员管理',
+  'health-checkup': '健康体检',
+  'health-disease': '疾病管理',
+  'health-stats': '健康统计',
   'backup-center': '备份中心',
 }
 

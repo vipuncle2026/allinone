@@ -15,8 +15,9 @@ RUN pip install --no-cache-dir -i https://pypi.tuna.tsinghua.edu.cn/simple -r re
 # 复制代码
 COPY . .
 
-# 创建上传目录（骑行/徒步/跑步的运动文件）
+# 创建上传目录（运动文件 / 健康报告 / 物品照片）
 RUN mkdir -p /app/uploads/cycling /app/uploads/hiking /app/uploads/running \
+    /app/uploads/health /app/uploads/items \
     && mkdir -p /app/data
 
 # 数据库和上传文件使用 Volume 持久化

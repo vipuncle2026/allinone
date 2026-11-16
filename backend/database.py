@@ -154,6 +154,7 @@ def init_db():
     from models import item  # noqa: F401
     from models import settings  # noqa: F401
     from models import running  # noqa: F401
+    from models import health  # noqa: F401
     Base.metadata.create_all(bind=get_engine())
     # 自动迁移（补齐新增列）
     _auto_migrate()

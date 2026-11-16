@@ -231,6 +231,10 @@ export const dashboardApi = {
   getSummary() {
     return cachedGet('/dashboard/summary', {})
   },
+  /** 健康管理概览：成员健康卡片 + 体检/疾病/花费汇总 */
+  getHealth() {
+    return http.get('/dashboard/health')
+  },
 }
 
 // ─── 基金 API ─────────────────────────────────────────────────
@@ -881,6 +885,114 @@ export const itemApi = {
   /** 导入 JSON */
   importJson(data) {
     return http.post('/item/import/json', data)
+  },
+}
+
+// ─── 健康管理 API ─────────────────────────────────────────
+
+export const healthApi = {
+  getConfig() {
+    return http.get('/health/config')
+  },
+  // 成员
+  listMembers(params = {}) {
+    return http.get('/health/members', { params })
+  },
+  createMember(data) {
+    return http.post('/health/members', data)
+  },
+  updateMember(id, data) {
+    return http.put(`/health/members/${id}`, data)
+  },
+  deleteMember(id) {
+    return http.delete(`/health/members/${id}`)
+  },
+  uploadMemberPhoto(file) {
+    const form = new FormData()
+    form.append('file', file)
+    return http.post('/health/members/upload-photo', form)
+  },
+  // 体检
+  listCheckups(params = {}) {
+    return http.get('/health/checkups', { params })
+  },
+  getCheckup(id) {
+    return http.get(`/health/checkups/${id}`)
+  },
+  createCheckup(data) {
+    return http.post('/health/checkups', data)
+  },
+  updateCheckup(id, data) {
+    return http.put(`/health/checkups/${id}`, data)
+  },
+  deleteCheckup(id) {
+    return http.delete(`/health/checkups/${id}`)
+  },
+  // 疾病
+  listDiseases(params = {}) {
+    return http.get('/health/diseases', { params })
+  },
+  createDisease(data) {
+    return http.post('/health/diseases', data)
+  },
+  updateDisease(id, data) {
+    return http.put(`/health/diseases/${id}`, data)
+  },
+  deleteDisease(id) {
+    return http.delete(`/health/diseases/${id}`)
+  },
+  // 就诊记录
+  listVisits(diseaseId) {
+    return http.get('/health/visits', { params: { disease_id: diseaseId } })
+  },
+  createVisit(data) {
+    return http.post('/health/visits', data)
+  },
+  updateVisit(id, data) {
+    return http.put(`/health/visits/${id}`, data)
+  },
+  deleteVisit(id) {
+    return http.delete(`/health/visits/${id}`)
+  },
+  // 附件（检查报告）
+  listAttachments(refType, refId) {
+    return http.get('/health/attachments', { params: { ref_type: refType, ref_id: refId } })
+  },
+  uploadAttachment(refType, refId, file) {
+    const form = new FormData()
+    form.append('file', file)
+    return http.post('/health/attachments/upload', form, {
+      params: { ref_type: refType, ref_id: refId },
+    })
+  },
+  deleteAttachment(id) {
+    return http.delete(`/health/attachments/${id}`)
+  },
+  // 医疗花费
+  listExpenses(refType, refId) {
+    return http.get('/health/expenses', { params: { ref_type: refType, ref_id: refId } })
+  },
+  createExpense(data) {
+    return http.post('/health/expenses', data)
+  },
+  updateExpense(id, data) {
+    return http.put(`/health/expenses/${id}`, data)
+  },
+  deleteExpense(id) {
+    return http.delete(`/health/expenses/${id}`)
+  },
+  // 统计
+  statsOverview() {
+    return http.get('/health/stats/overview')
+  },
+  statsItems(memberId) {
+    return http.get('/health/stats/items', { params: { member_id: memberId } })
+  },
+  statsTrends(memberId, itemName) {
+    return http.get('/health/stats/trends', { params: { member_id: memberId, item_name: itemName } })
+  },
+  statsAbnormal(memberId) {
+    return http.get('/health/stats/abnormal', { params: { member_id: memberId } })
   },
 }
 

@@ -234,6 +234,64 @@ def get_timeline(limit: int = 20, db: Session = Depends(get_db)):
     except Exception as e:
         logger.warning("[dashboard] 车辆费用数据加载失败: %s", e, exc_info=True)
 
+    # ── 健康：体检记录 ──────────────────────────────────
+    try:
+        from models.health import HealthCheckup, FamilyMember
+        _members = {m.id: m.name for m in db.query(FamilyMember).all()}
+        cks = (
+            db.query(HealthCheckup)
+            .order_by(HealthCheckup.checkup_date.desc())
+            .limit(4)
+            .all()
+        )
+        for c in cks:
+            if not c.checkup_date:
+                continue
+            events.append({
+                "type": "health",
+                "icon": "📋",
+                "color": "#ec4899",
+                "tag": "体检",
+                "title": f"{_members.get(c.member_id, '')} {c.checkup_type}".strip(),
+                "date": c.checkup_date,
+                "meta": " · ".join(x for x in [c.hospital, f"¥{c.cost:,.2f}" if c.cost else ""] if x),
+                "link": "/health/checkup",
+            })
+    except Exception as e:
+        logger.warning("[dashboard] 体检数据加载失败: %s", e, exc_info=True)
+
+    # ── 健康：就诊记录 ──────────────────────────────────
+    try:
+        from models.health import DiseaseVisit, DiseaseRecord, FamilyMember
+        _members = {m.id: m.name for m in db.query(FamilyMember).all()}
+        _diseases = {d.id: d.disease_name for d in db.query(DiseaseRecord).all()}
+        visits = (
+            db.query(DiseaseVisit)
+            .order_by(DiseaseVisit.visit_date.desc())
+            .limit(4)
+            .all()
+        )
+        for v in visits:
+            if not v.visit_date:
+                continue
+            dis = _diseases.get(v.disease_id, "")
+            events.append({
+                "type": "health",
+                "icon": "🏥",
+                "color": "#f43f5e",
+                "tag": "就诊",
+                "title": dis or (v.diagnosis or "就诊"),
+                "date": v.visit_date,
+                "meta": " · ".join(x for x in [
+                    _members.get(v.member_id, ""),
+                    v.hospital,
+                    v.department,
+                ] if x),
+                "link": "/health/disease",
+            })
+    except Exception as e:
+        logger.warning("[dashboard] 就诊数据加载失败: %s", e, exc_info=True)
+
     # 按日期降序排序，取前 limit 条
     events.sort(key=lambda e: e.get("date") or "", reverse=True)
     return events[:limit]
@@ -426,6 +484,140 @@ def get_activity_calendar(year: int = None, db: Session = Depends(get_db)):
 
     return {"year": year, "months": months}
 
+
+@router.get("/health")
+def get_health_overview(db: Session = Depends(get_db)):
+    """健康管理概览：家庭成健康卡片 + 体检/疾病/花费汇总"""
+    from models.health import (
+        FamilyMember, HealthCheckup, HealthCheckupItem,
+        DiseaseRecord, HealthExpense,
+    )
+
+    today = datetime.now().date()
+    year_prefix = str(today.year)
+    month_prefix = today.strftime("%Y-%m")
+
+    members = db.query(FamilyMember).order_by(FamilyMember.id).all()
+
+    def _age(birthday: str) -> Optional[int]:
+        if not birthday:
+            return None
+        try:
+            b = datetime.strptime(birthday[:10], "%Y-%m-%d").date()
+            return today.year - b.year - ((today.month, today.day) < (b.month, b.day))
+        except Exception:
+            return None
+
+    member_cards = []
+    for m in members:
+        last_ck = (
+            db.query(HealthCheckup)
+            .filter(HealthCheckup.member_id == m.id)
+            .order_by(HealthCheckup.checkup_date.desc())
+            .first()
+        )
+        abnormal = 0
+        if last_ck:
+            abnormal = db.query(func.count(HealthCheckupItem.id)).filter(
+                HealthCheckupItem.checkup_id == last_ck.id,
+                HealthCheckupItem.abnormal_flag != "正常",
+            ).scalar() or 0
+        active_diseases = db.query(func.count(DiseaseRecord.id)).filter(
+            DiseaseRecord.member_id == m.id,
+            DiseaseRecord.status != "已治愈",
+        ).scalar() or 0
+        chronic = db.query(func.count(DiseaseRecord.id)).filter(
+            DiseaseRecord.member_id == m.id,
+            DiseaseRecord.status == "慢性病",
+        ).scalar() or 0
+        days_since = None
+        if last_ck and last_ck.checkup_date:
+            try:
+                d = datetime.strptime(last_ck.checkup_date[:10], "%Y-%m-%d").date()
+                days_since = (today - d).days
+            except Exception:
+                days_since = None
+
+        member_cards.append({
+            "id": m.id,
+            "name": m.name,
+            "relationship": m.relationship,
+            "gender": m.gender,
+            "age": _age(m.birthday),
+            "blood_type": m.blood_type,
+            "last_checkup_date": last_ck.checkup_date if last_ck else "",
+            "days_since_checkup": days_since,
+            "abnormal_count": int(abnormal),
+            "active_disease_count": int(active_diseases),
+            "chronic_count": int(chronic),
+        })
+
+    checkup_count = db.query(func.count(HealthCheckup.id)).scalar() or 0
+    year_checkup_count = db.query(func.count(HealthCheckup.id)).filter(
+        HealthCheckup.checkup_date.startswith(year_prefix)
+    ).scalar() or 0
+    disease_total = db.query(func.count(DiseaseRecord.id)).scalar() or 0
+    active_disease = db.query(func.count(DiseaseRecord.id)).filter(
+        DiseaseRecord.status != "已治愈"
+    ).scalar() or 0
+    chronic_total = db.query(func.count(DiseaseRecord.id)).filter(
+        DiseaseRecord.status == "慢性病"
+    ).scalar() or 0
+
+    # 花费：体检 cost 字段 + 医疗花费明细
+    checkup_cost_total = db.query(func.coalesce(func.sum(HealthCheckup.cost), 0)).scalar() or 0
+    checkup_cost_year = db.query(func.coalesce(func.sum(HealthCheckup.cost), 0)).filter(
+        HealthCheckup.checkup_date.startswith(year_prefix)
+    ).scalar() or 0
+    expense_total = db.query(func.coalesce(func.sum(HealthExpense.amount), 0)).scalar() or 0
+    expense_year = db.query(func.coalesce(func.sum(HealthExpense.amount), 0)).filter(
+        HealthExpense.expense_date.startswith(year_prefix)
+    ).scalar() or 0
+    expense_month = db.query(func.coalesce(func.sum(HealthExpense.amount), 0)).filter(
+        HealthExpense.expense_date.startswith(month_prefix)
+    ).scalar() or 0
+
+    # 最近一次体检的异常指标
+    latest = (
+        db.query(HealthCheckup)
+        .order_by(HealthCheckup.checkup_date.desc())
+        .first()
+    )
+    latest_abnormal = []
+    if latest:
+        rows = db.query(HealthCheckupItem).filter(
+            HealthCheckupItem.checkup_id == latest.id,
+            HealthCheckupItem.abnormal_flag != "正常",
+        ).limit(5).all()
+        _mname = {m.id: m.name for m in members}
+        latest_abnormal = [{
+            "item_name": r.item_name,
+            "value": r.value,
+            "text_value": r.text_value,
+            "unit": r.unit,
+            "reference_range": r.reference_range,
+            "abnormal_flag": r.abnormal_flag,
+            "member_name": _mname.get(r.member_id, ""),
+            "checkup_date": r.checkup_date,
+        } for r in rows]
+
+    return {
+        "totals": {
+            "member_count": len(members),
+            "checkup_count": int(checkup_count),
+            "year_checkup_count": int(year_checkup_count),
+            "disease_count": int(disease_total),
+            "active_disease_count": int(active_disease),
+            "chronic_count": int(chronic_total),
+            "expense_total": round(float(checkup_cost_total) + float(expense_total), 2),
+            "expense_year": round(float(checkup_cost_year) + float(expense_year), 2),
+            "expense_month": round(float(expense_month), 2),
+            "latest_checkup_date": latest.checkup_date if latest else "",
+            "latest_checkup_hospital": latest.hospital if latest else "",
+        },
+        "members": member_cards,
+        "latest_abnormal": latest_abnormal,
+    }
 
 @router.get("/summary")
 def get_summary(db: Session = Depends(get_db)):

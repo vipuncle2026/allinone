@@ -143,6 +143,7 @@ def export_all_data(sess):
     from models.fund import FundLibrary, FundFavorite, FundGroup, FundSnapshot, FundSnapshotItem, FundTransaction
     from models.vehicle import Vehicle, FuelRecord, VehicleExpense
     from models.item import Item
+    from models.health import FamilyMember, HealthCheckup, HealthCheckupItem, DiseaseRecord, DiseaseVisit, HealthAttachment, HealthExpense
     from models.auth import User
     from models.backup import BackupLog
 
@@ -189,6 +190,15 @@ def export_all_data(sess):
             "item": {
                 "important_items": export_table(sess, "important_items", Item),
             },
+            "health": {
+                "members": export_table(sess, "family_members", FamilyMember),
+                "checkups": export_table(sess, "health_checkups", HealthCheckup),
+                "checkup_items": export_table(sess, "health_checkup_items", HealthCheckupItem),
+                "diseases": export_table(sess, "disease_records", DiseaseRecord),
+                "visits": export_table(sess, "disease_visits", DiseaseVisit),
+                "attachments": export_table(sess, "health_attachments", HealthAttachment),
+                "expenses": export_table(sess, "health_expenses", HealthExpense),
+            },
             "system": {
                 "users": export_table(sess, "users", User),
                 "backup_logs": export_table(sess, "backup_logs", BackupLog),
@@ -227,6 +237,7 @@ def _build_table_config():
     from models.fund import FundLibrary, FundFavorite, FundGroup, FundSnapshot, FundSnapshotItem, FundTransaction
     from models.vehicle import Vehicle, FuelRecord, VehicleExpense
     from models.item import Item
+    from models.health import FamilyMember, HealthCheckup, HealthCheckupItem, DiseaseRecord, DiseaseVisit, HealthAttachment, HealthExpense
 
     return {
         "finance": [
@@ -267,6 +278,15 @@ def _build_table_config():
         ],
         "item": [
             ("important_items", Item, "id"),
+        ],
+        "health": [
+            ("members", FamilyMember, "id"),
+            ("checkups", HealthCheckup, "id"),
+            ("checkup_items", HealthCheckupItem, "id"),
+            ("diseases", DiseaseRecord, "id"),
+            ("visits", DiseaseVisit, "id"),
+            ("attachments", HealthAttachment, "id"),
+            ("expenses", HealthExpense, "id"),
         ],
     }
 
@@ -485,6 +505,7 @@ def reset_all_data() -> dict:
     from models.fund import FundLibrary, FundFavorite, FundGroup, FundSnapshot, FundSnapshotItem, FundTransaction
     from models.vehicle import Vehicle, FuelRecord, VehicleExpense
     from models.item import Item
+    from models.health import FamilyMember, HealthCheckup, HealthCheckupItem, DiseaseRecord, DiseaseVisit, HealthAttachment, HealthExpense
     from models.settings import UserSetting
 
     reset_tables = [
@@ -511,10 +532,18 @@ def reset_all_data() -> dict:
         ("vehicle_expenses", VehicleExpense),
         ("vehicles", Vehicle),
         ("important_items", Item),
+        ("health_checkup_items", HealthCheckupItem),
+        ("health_attachments", HealthAttachment),
+        ("health_expenses", HealthExpense),
+        ("disease_visits", DiseaseVisit),
+        ("health_checkups", HealthCheckup),
+        ("disease_records", DiseaseRecord),
+        ("family_members", FamilyMember),
         ("user_settings", UserSetting),
     ]
 
     counts = {}
+    removed_files = 0
     try:
         for table_name, model in reset_tables:
             count = sess.query(model).count()
@@ -531,14 +560,24 @@ def reset_all_data() -> dict:
         except Exception:
             pass
 
-        total = sum(counts.values())
-        save_log(sess, "reset", record_count=total,
-                 detail=json.dumps(counts, ensure_ascii=False))
+        # 所有记录已清空，相关上传文件必然成为孤儿，直接清空对应子目录
+        for sub in ("cycling", "hiking", "running", "health", "items"):
+            removed_files += _clear_upload_subdir(sub)
 
+        total = sum(counts.values())
+        detail = dict(counts)
+        if removed_files:
+            detail["_files_removed"] = removed_files
+        save_log(sess, "reset", record_count=total,
+                 detail=json.dumps(detail, ensure_ascii=False))
+
+        msg = f"数据初始化完成，共清空 {total} 条记录"
+        if removed_files:
+            msg += f"，清理 {removed_files} 个附件文件"
         return {
             "success": True,
-            "message": f"数据初始化完成，共清空 {total} 条记录",
-            "detail": counts,
+            "message": msg,
+            "detail": detail,
         }
     except Exception as e:
         sess.rollback()
@@ -551,25 +590,70 @@ def reset_all_data() -> dict:
 # 孤儿文件清理
 # ============================================================
 
+def _clear_upload_subdir(sub: str) -> int:
+    """清空 uploads/<sub> 目录下的所有文件，返回删除数量（不删子目录）"""
+    removed = 0
+    upload_sub = get_upload_dir(sub)
+    if not os.path.isdir(upload_sub):
+        return 0
+    for fname in os.listdir(upload_sub):
+        fpath = os.path.join(upload_sub, fname)
+        if os.path.isfile(fpath):
+            try:
+                os.remove(fpath)
+                removed += 1
+            except OSError:
+                pass
+    return removed
+
+
 def do_cleanup_orphan_files() -> dict:
     """清理 uploads/ 目录中不再被任何活动记录引用的孤儿文件"""
     from models.cycling import CyclingActivity
     from models.hiking import HikingActivity
     from models.running import RunningActivity
+    from models.health import HealthAttachment, FamilyMember
+    from models.item import Item
 
     sess = get_session_factory()()
     try:
         upload_base = os.path.abspath(get_upload_dir())
+
+        def norm(fp):
+            """把 DB 中的路径统一成绝对路径"""
+            if not fp:
+                return None
+            if fp.startswith("uploads/"):
+                fp = fp[len("uploads/"):]
+            return os.path.abspath(os.path.join(upload_base, fp))
+
         db_paths = set()
+        # 运动轨迹文件
         for model in (CyclingActivity, HikingActivity, RunningActivity):
             rows = sess.query(model.file_path).filter(model.file_path != None).all()
             for (fp,) in rows:
-                if fp:
-                    db_paths.add(os.path.abspath(os.path.join(upload_base, fp)))
+                p = norm(fp)
+                if p:
+                    db_paths.add(p)
+        # 健康附件（体检报告 / 就诊报告 / 疾病资料）
+        for (fp,) in sess.query(HealthAttachment.file_path).filter(HealthAttachment.file_path != None).all():
+            p = norm(fp)
+            if p:
+                db_paths.add(p)
+        # 家庭成员头像
+        for (fp,) in sess.query(FamilyMember.photo_path).filter(FamilyMember.photo_path != "").all():
+            p = norm(fp)
+            if p:
+                db_paths.add(p)
+        # 重要物品照片
+        for (fp,) in sess.query(Item.photo_path).filter(Item.photo_path != "").all():
+            p = norm(fp)
+            if p:
+                db_paths.add(p)
     finally:
         sess.close()
 
-    subdirs = ["cycling", "hiking", "running"]
+    subdirs = ["cycling", "hiking", "running", "health", "items"]
     deleted_files = []
     freed_bytes = 0
 

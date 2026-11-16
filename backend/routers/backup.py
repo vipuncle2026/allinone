@@ -148,6 +148,13 @@ def backup_info():
             ("fuel_records", "加油/充电记录"),
             ("vehicle_expenses", "车辆费用"),
             ("important_items", "重要物品"),
+            ("family_members", "家庭成员"),
+            ("health_checkups", "健康体检"),
+            ("health_checkup_items", "体检指标明细"),
+            ("disease_records", "疾病档案"),
+            ("disease_visits", "就诊记录"),
+            ("health_attachments", "检查报告附件"),
+            ("health_expenses", "医疗花费"),
         ]
         result = []
         for table_name, label in tables:

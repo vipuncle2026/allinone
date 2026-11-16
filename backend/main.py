@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 
 from database import init_db, get_upload_dir, get_data_dir
-from routers import cycling, fund, finance, hiking, vehicle, travel, backup, auth, dashboard, item, search, settings, running
+from routers import cycling, fund, finance, hiking, vehicle, travel, backup, auth, dashboard, item, search, settings, running, health
 
 
 # ── 简易限流器（基于 IP + 时间窗口）────────────────────────────────────────
@@ -168,6 +168,7 @@ app.include_router(item.router, dependencies=[Depends(auth.verify_token)])
 app.include_router(search.router, dependencies=[Depends(auth.verify_token)])
 app.include_router(settings.router, dependencies=[Depends(auth.verify_token)])
 app.include_router(running.router, dependencies=[Depends(auth.verify_token)])
+app.include_router(health.router, dependencies=[Depends(auth.verify_token)])
 
 # 上传目录（支持环境变量 UPLOAD_DIR，Electron 桌面端会设置）
 UPLOAD_DIR = get_upload_dir()

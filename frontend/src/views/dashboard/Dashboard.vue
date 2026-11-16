@@ -363,6 +363,92 @@
       </div>
     </div>
 
+    <!-- 第三行：健康管理概览 + 成员健康卡 -->
+    <div class="health-row" style="margin-bottom: 20px">
+      <!-- 健康概览 -->
+      <div class="module-card card-health" :class="{ 'module-card-empty': !healthTotals.member_count }" style="flex: 0 0 300px">
+        <div class="card-topbar health-topbar"></div>
+        <div class="module-card-header">
+          <div class="module-icon health-icon">❤️</div>
+          <span class="module-title">健康管理</span>
+          <a-button type="link" size="small" @click="$router.push('/health/members')">查看全部 →</a-button>
+        </div>
+        <div class="module-stats-row">
+          <div class="mini-stat mini-stat-hero">
+            <div class="mini-value mini-value-hero">{{ healthTotals.member_count || 0 }}</div>
+            <div class="mini-label">成员</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-value">{{ healthTotals.year_checkup_count || 0 }}</div>
+            <div class="mini-label">本年体检</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-value" :class="{ 'value-warn': healthTotals.chronic_count > 0 }">{{ healthTotals.chronic_count || 0 }}</div>
+            <div class="mini-label">慢性病</div>
+          </div>
+        </div>
+        <div class="module-card-footer">
+          <span class="footer-amount">本年医疗花费 <strong>¥{{ money(healthTotals.expense_year) }}</strong></span>
+          <a-button size="small" class="btn-health" @click="$router.push('/health/checkup')">体检</a-button>
+        </div>
+      </div>
+
+      <!-- 家庭成员健康卡 -->
+      <div class="health-body">
+        <div class="health-members" v-if="healthMembers.length">
+          <div
+            v-for="m in healthMembers"
+            :key="m.id"
+            class="hm-card"
+            @click="$router.push('/health/checkup')"
+          >
+            <div class="hm-avatar" :class="m.gender === '女' ? 'hm-avatar-f' : 'hm-avatar-m'">
+              {{ (m.name || '?').slice(0, 1) }}
+            </div>
+            <div class="hm-info">
+              <div class="hm-name">
+                {{ m.name }}
+                <span class="hm-rel">{{ m.relationship }}</span>
+              </div>
+              <div class="hm-meta">
+                <span v-if="m.age">{{ m.age }}岁</span>
+                <span v-if="m.blood_type">{{ m.blood_type }}型</span>
+                <span :class="checkupClass(m)">{{ checkupText(m) }}</span>
+              </div>
+            </div>
+            <div class="hm-flags">
+              <span v-if="m.abnormal_count" class="hm-flag flag-warn">异常 {{ m.abnormal_count }}</span>
+              <span v-if="m.chronic_count" class="hm-flag flag-chronic">慢病 {{ m.chronic_count }}</span>
+              <span v-if="!m.abnormal_count && !m.active_disease_count" class="hm-flag flag-ok">正常</span>
+              <span v-else-if="!m.abnormal_count && m.active_disease_count && !m.chronic_count" class="hm-flag flag-mild">在治 {{ m.active_disease_count }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="hm-empty">
+          <div class="hm-empty-icon">👨‍👩‍👧</div>
+          <div class="hm-empty-text">还没有家庭成员，先添加成员开始记录健康档案</div>
+          <a-button size="small" type="primary" @click="$router.push('/health/members')">+ 添加成员</a-button>
+        </div>
+
+        <!-- 最近异常指标 -->
+        <div v-if="latestAbnormal.length" class="health-abnormal">
+          <div class="ha-head">
+            <span class="ha-title">⚠️ 最近异常指标</span>
+            <span class="ha-sub">{{ healthTotals.latest_checkup_date }} · {{ healthTotals.latest_checkup_hospital || '体检' }}</span>
+          </div>
+          <div class="ha-list">
+            <div v-for="(a, i) in latestAbnormal" :key="i" class="ha-item">
+              <span class="ha-member">{{ a.member_name }}</span>
+              <span class="ha-name">{{ a.item_name }}</span>
+              <span class="ha-value">{{ a.value ?? a.text_value }}{{ a.unit }}</span>
+              <span class="ha-flag" :class="'flag-' + a.abnormal_flag">{{ a.abnormal_flag }}</span>
+              <span class="ha-ref" v-if="a.reference_range">参考 {{ a.reference_range }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 近期动态时间线 + 运动月历 + 基金持仓 -->
     <a-row :gutter="16" align="stretch">
       <!-- 时间线 40% -->
@@ -538,6 +624,16 @@ const vehicleStats = ref({ count: 0, fuelCount: 0, expenseCount: 0, totalSpendin
 const travelStats = ref({ tripCount: 0, totalExpense: '0', totalKm: '0', expenseCount: 0, totalBudget: '0', yearTrips: 0, yearExpense: '0', yearKm: '0', accommodationExpense: '0', diningExpense: '0', transportExpense: '0' })
 const itemStats = ref({ total: 0, categoryCount: 0, importantCount: 0, totalPurchase: 0 })
 
+// 健康管理
+const healthTotals = ref({
+  member_count: 0, checkup_count: 0, year_checkup_count: 0,
+  disease_count: 0, active_disease_count: 0, chronic_count: 0,
+  expense_total: 0, expense_year: 0, expense_month: 0,
+  latest_checkup_date: '', latest_checkup_hospital: '',
+})
+const healthMembers = ref([])
+const latestAbnormal = ref([])
+
 // 运动月历
 const calendarData = ref([])
 const calendarYear = ref(new Date().getFullYear())
@@ -564,6 +660,36 @@ const summary = ref(null)
 function formatMoney(val) {
   if (!val || val === 0) return '¥0.00'
   return '¥' + Number(val).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function money(val) {
+  return Number(val || 0).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function checkupText(m) {
+  if (m.days_since_checkup === null || m.days_since_checkup === undefined) return '未体检'
+  const d = m.days_since_checkup
+  if (d <= 0) return '今日体检'
+  if (d < 30) return `${d}天前体检`
+  if (d < 365) return `${Math.floor(d / 30)}个月前体检`
+  return `已${Math.floor(d / 365)}年未体检`
+}
+
+function checkupClass(m) {
+  const d = m.days_since_checkup
+  if (d === null || d === undefined) return 'meta-warn'
+  if (d > 365) return 'meta-warn'
+  if (d > 300) return 'meta-note'
+  return ''
+}
+
+async function loadHealth() {
+  try {
+    const { data } = await dashboardApi.getHealth()
+    healthTotals.value = { ...healthTotals.value, ...(data.totals || {}) }
+    healthMembers.value = data.members || []
+    latestAbnormal.value = data.latest_abnormal || []
+  } catch (e) { /* ignore */ }
 }
 
 // 运动月历热力色：根据里程计算 0~1
@@ -709,6 +835,9 @@ onMounted(async () => {
 
   // 重要物品轮播
   loadImportantItems()
+
+  // 健康管理概览
+  loadHealth()
 
   // 物品统计
   try {
@@ -1084,4 +1213,79 @@ onMounted(async () => {
 .status-闲置 { color: #f59e0b; background: #fffbeb; }
 .status-出借 { color: #3b82f6; background: #eff6ff; }
 .status-已出售 { color: #94a3b8; background: #f8fafc; }
+
+/* ══════════════════════════════════════════
+   8. 健康管理行（概览卡 + 成员健康卡 + 异常指标）
+══════════════════════════════════════════ */
+.health-row { display: flex; gap: 16px; align-items: stretch; flex-wrap: wrap; }
+.health-topbar { background: #ec4899; }
+.health-icon { background: #fdf2f8; }
+.btn-health {
+  background: #ec4899 !important; border-color: #ec4899 !important; color: #fff !important;
+  border-radius: 8px !important; font-size: 12px !important; padding: 0 14px !important; height: 28px !important;
+}
+.health-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.health-members { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.hm-card {
+  flex: 1 1 230px; min-width: 230px;
+  background: #fff; border: 1px solid #f1f5f9; border-radius: 12px;
+  padding: 14px 16px; display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: box-shadow .2s, transform .2s;
+}
+.hm-card:hover { box-shadow: 0 4px 16px rgba(0, 0, 0, .07); transform: translateY(-1px); }
+.hm-avatar {
+  width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; font-weight: 700;
+}
+.hm-avatar-m { background: #eff6ff; color: #2563eb; }
+.hm-avatar-f { background: #fdf2f8; color: #db2777; }
+.hm-info { flex: 1; min-width: 0; }
+.hm-name { font-size: 14px; font-weight: 600; color: #1e293b; display: flex; align-items: center; gap: 6px; }
+.hm-rel { font-size: 11px; font-weight: 400; color: #94a3b8; background: #f8fafc; border-radius: 4px; padding: 1px 6px; }
+.hm-meta {
+  font-size: 11px; color: #94a3b8; margin-top: 3px;
+  display: flex; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.hm-meta .meta-warn { color: #ea580c; font-weight: 500; }
+.hm-meta .meta-note { color: #f59e0b; }
+.hm-flags { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex-shrink: 0; }
+.hm-flag { font-size: 11px; border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+.flag-warn { color: #b91c1c; background: #fef2f2; }
+.flag-chronic { color: #c2410c; background: #fff7ed; }
+.flag-ok { color: #16a34a; background: #f0fdf4; }
+.flag-mild { color: #2563eb; background: #eff6ff; }
+.value-warn { color: #ea580c !important; }
+
+.hm-empty {
+  background: #fff; border: 1px dashed #e2e8f0; border-radius: 12px;
+  padding: 26px; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+}
+.hm-empty-icon { font-size: 26px; }
+.hm-empty-text { font-size: 13px; color: #94a3b8; }
+
+.health-abnormal { background: #fff; border: 1px solid #f1f5f9; border-radius: 12px; padding: 12px 16px; }
+.ha-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.ha-title { font-size: 13px; font-weight: 600; color: #b91c1c; }
+.ha-sub { font-size: 11px; color: #94a3b8; }
+.ha-list { display: flex; flex-direction: column; gap: 6px; }
+.ha-item {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: #475569;
+  background: #fef2f2; border-radius: 6px; padding: 6px 10px;
+}
+.ha-member { color: #94a3b8; }
+.ha-name { font-weight: 600; color: #1e293b; }
+.ha-value { font-family: var(--font-mono, monospace); color: #b91c1c; font-weight: 600; }
+.ha-flag { font-size: 11px; border-radius: 4px; padding: 0 5px; background: #fee2e2; color: #b91c1c; }
+.ha-ref { margin-left: auto; color: #94a3b8; }
+
+@media (max-width: 767px) {
+  .health-row { flex-direction: column; }
+  .health-row > .card-health { flex: 1 1 auto !important; }
+  .hm-card { flex: 1 1 calc(50% - 6px); min-width: calc(50% - 6px); }
+  .ha-ref { display: none; }
+}
 </style>
