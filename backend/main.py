@@ -205,6 +205,12 @@ def health():
     return {"status": "healthy"}
 
 
+@app.get("/api/health")
+def health_api():
+    """兼容走 nginx 的 /api/ 代理（未代理根 /health 的旧部署也能探测）"""
+    return {"status": "healthy"}
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="All-in-One 后端服务")
     parser.add_argument("--host", default="127.0.0.1", help="监听地址")

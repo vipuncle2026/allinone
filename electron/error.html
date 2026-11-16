@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<title>无法连接</title>
+<style>
+  :root {
+    --bg: #f7f7f8;
+    --card: #ffffff;
+    --text: #1f2328;
+    --text-sub: #6b7280;
+    --border: #e5e7eb;
+    --primary: #1677ff;
+    --danger: #dc2626;
+    --danger-bg: #fef2f2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161618;
+      --card: #1e1e20;
+      --text: #e8e8ea;
+      --text-sub: #9ca3af;
+      --border: #333338;
+      --primary: #3b82f6;
+      --danger: #f87171;
+      --danger-bg: #2a1a1a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    font-size: 13px;
+    -webkit-user-select: none;
+  }
+  .card {
+    width: 460px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 30px 32px 26px;
+    text-align: center;
+  }
+  .icon {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: var(--danger-bg);
+    color: var(--danger);
+    font-size: 24px;
+    font-weight: 500;
+    line-height: 44px;
+  }
+  h1 { font-size: 16px; font-weight: 500; margin: 0 0 8px; }
+  .sub { color: var(--text-sub); font-size: 12.5px; margin-bottom: 16px; }
+  .url {
+    display: inline-block;
+    max-width: 100%;
+    padding: 5px 10px;
+    margin-bottom: 18px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    word-break: break-all;
+    -webkit-user-select: text;
+  }
+  .tips {
+    text-align: left;
+    font-size: 12px;
+    color: var(--text-sub);
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 11px 14px;
+    margin-bottom: 20px;
+  }
+  .tips div { margin: 3px 0; }
+  .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text);
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--primary); }
+  button.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+  button.primary:hover { opacity: 0.9; }
+  button:disabled { opacity: 0.55; cursor: default; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">!</div>
+    <h1>无法连接到服务器</h1>
+    <div class="sub">检查 NAS 是否开机、Docker 容器是否在运行</div>
+    <div class="url" id="urlText">—</div>
+
+    <div class="tips">
+      <div>1. NAS 与这台 Mac 是否在同一网络（或已连上 Tailscale）</div>
+      <div>2. NAS 上容器状态：<code>docker compose ps</code></div>
+      <div>3. 地址端口是否写对，例如 http://192.168.1.100:8080</div>
+      <div id="detailLine" style="display:none;margin-top:8px;color:var(--danger)"></div>
+    </div>
+
+    <div class="actions">
+      <button id="btn-retry" class="primary">重试</button>
+      <button id="btn-settings">连接设置</button>
+      <button id="btn-local">改用本地模式</button>
+    </div>
+  </div>
+
+<script>
+  const params = new URLSearchParams(location.search)
+  const targetUrl = params.get('url') || ''
+  const detail = params.get('detail') || ''
+
+  document.getElementById('urlText').textContent = targetUrl || '（未配置服务器）'
+  if (detail) {
+    const line = document.getElementById('detailLine')
+    line.textContent = detail
+    line.style.display = 'block'
+  }
+
+  const btnRetry = document.getElementById('btn-retry')
+
+  btnRetry.addEventListener('click', async () => {
+    btnRetry.disabled = true
+    btnRetry.textContent = '连接中…'
+    try {
+      const r = await window.electronAPI.retryConnect()
+      if (!r || !r.ok) {
+        btnRetry.textContent = '仍无法连接'
+        setTimeout(() => {
+          btnRetry.disabled = false
+          btnRetry.textContent = '重试'
+        }, 1500)
+      }
+    } catch {
+      btnRetry.disabled = false
+      btnRetry.textContent = '重试'
+    }
+  })
+
+  document.getElementById('btn-settings').addEventListener('click', () => {
+    window.electronAPI.openSettings()
+  })
+
+  document.getElementById('btn-local').addEventListener('click', () => {
+    window.electronAPI.switchToLocal()
+  })
+</script>
+</body>
+</html>

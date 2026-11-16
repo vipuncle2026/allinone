@@ -2,8 +2,11 @@
 set -e
 
 # ── All-in-One 桌面端一键构建脚本 ───────────────────────
-# 用法: bash build-mac.sh
-# 产出: electron/release/AllInOne-1.0.0-arm64.dmg
+# 用法: bash build-mac.sh [后缀]
+#   无参数      -> AllInOne-1.0.0-arm64.dmg     (纯本地独立模式)
+#   带后缀      -> AllInOne-1.0.0-arm64-<后缀>.dmg (如 sync = 支持连接 NAS 同步)
+#   环境变量 KEEP_OLD=1 时不覆盖同名旧包，自动追加时间戳
+# 产出: electron/release/*.dmg
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
@@ -50,8 +53,14 @@ if ! "$PYTHON_BIN" -m PyInstaller --version &>/dev/null; then
     "$PYTHON_BIN" -m pip install --target "$BACKEND_DIR/venv/lib/python3.14/site-packages" pyinstaller -q
 fi
 
-rm -rf dist build_temp
-"$PYTHON_BIN" -m PyInstaller allinone-api.spec --distpath dist --workpath build_temp --clean -y
+if [ -d "$BACKEND_DIR/dist/allinone-api" ]; then
+    # 用 mv 移走旧产物（避免 PyInstaller 内部删除触发批量删除保护）
+    STALE_DIR="/tmp/allinone-api-stale-$(date +%s)"
+    mkdir -p "$STALE_DIR"
+    mv "$BACKEND_DIR/dist/allinone-api" "$STALE_DIR/"
+    echo "  旧产物已移出: $STALE_DIR"
+fi
+"$PYTHON_BIN" -m PyInstaller allinone-api.spec --distpath dist --workpath build_temp -y
 echo "  后端打包完成: $BACKEND_DIR/dist/allinone-api/"
 
 # ── 3. 构建前端 ─────────────────────────────────────
@@ -89,6 +98,24 @@ echo "  .app 构建完成: $ELECTRON_DIR/release/mac-arm64/AllInOne.app"
 echo ""
 echo "[5/5] hdiutil 打包 DMG..."
 
+DMG_SUFFIX="$1"
+VOLUME_NAME="AllInOne"
+if [ -n "$DMG_SUFFIX" ]; then
+  DMG_NAME="AllInOne-1.0.0-arm64-${DMG_SUFFIX}.dmg"
+  VOLUME_NAME="AllInOne-${DMG_SUFFIX}"
+else
+  DMG_NAME="AllInOne-1.0.0-arm64.dmg"
+fi
+
+DMG_PATH="$ELECTRON_DIR/release/$DMG_NAME"
+
+# 不覆盖旧包：已存在则追加时间戳
+if [ -f "$DMG_PATH" ] && [ "${KEEP_OLD:-0}" = "1" ]; then
+  DMG_PATH="${DMG_PATH%.dmg}-$(date +%Y%m%d-%H%M).dmg"
+fi
+
+echo "  输出文件: $(basename "$DMG_PATH")"
+
 DMG_STAGING="/tmp/allinone-dmg-$$"
 rm -rf "$DMG_STAGING"
 mkdir -p "$DMG_STAGING"
@@ -96,11 +123,10 @@ mkdir -p "$DMG_STAGING"
 cp -R "$ELECTRON_DIR/release/mac-arm64/AllInOne.app" "$DMG_STAGING/"
 ln -sf /Applications "$DMG_STAGING/Applications"
 
-DMG_PATH="$ELECTRON_DIR/release/AllInOne-1.0.0-arm64.dmg"
 rm -f "$DMG_PATH"
 
 hdiutil create \
-  -volname "AllInOne" \
+  -volname "$VOLUME_NAME" \
   -srcfolder "$DMG_STAGING" \
   -ov \
   -format UDZO \

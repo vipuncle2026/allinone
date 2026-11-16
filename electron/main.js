@@ -1,7 +1,9 @@
 const { app, BrowserWindow, Tray, Menu, dialog, shell, ipcMain } = require('electron')
 const path = require('path')
+const fs = require('fs')
 const { spawn } = require('child_process')
 const http = require('http')
+const https = require('https')
 const net = require('net')
 
 // ── 配置 ──────────────────────────────────────────────────────────
@@ -11,8 +13,112 @@ const HEALTH_INTERVAL = 500   // 健康检查间隔
 
 let mainWindow = null
 let tray = null
+let settingsWindow = null
 let apiProcess = null
 let actualPort = API_PORT
+let config = {}
+
+// ── 连接配置（config.json）────────────────────────────────────────
+
+function configPath() {
+  return path.join(app.getPath('userData'), 'config.json')
+}
+
+function loadConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(configPath(), 'utf8')) || {}
+  } catch {
+    return {}
+  }
+}
+
+function saveConfig(patch) {
+  const next = Object.assign({}, loadConfig(), patch)
+  try {
+    fs.mkdirSync(path.dirname(configPath()), { recursive: true })
+    fs.writeFileSync(configPath(), JSON.stringify(next, null, 2), 'utf8')
+  } catch (e) {
+    console.error('[CFG] 保存配置失败:', e.message)
+  }
+  config = next
+  return next
+}
+
+/** 远程模式：配置了服务器地址就不启动本地后端 */
+function isRemoteMode() {
+  return !!(config.serverUrl && String(config.serverUrl).trim())
+}
+
+/** 规范化用户输入的地址（补 http://、去尾部斜杠/误填的 /api） */
+function normalizeUrl(raw) {
+  let u = String(raw || '').trim()
+  if (!u) return ''
+  // 只输了 IP/域名:端口 时补协议
+  if (!/^https?:\/\//i.test(u)) u = 'http://' + u
+  // 去掉尾部斜杠
+  u = u.replace(/\/+$/, '')
+  // 用户可能误填了 /api 结尾（前端自己会拼 /api）
+  u = u.replace(/\/api$/i, '')
+  return u
+}
+
+/** 取地址的 scheme://host:port，用于提示 */
+function describeUrl(url) {
+  try {
+    const u = new URL(url)
+    const port = u.port || (u.protocol === 'https:' ? '443' : '80')
+    return `${u.protocol}//${u.hostname}:${port}`
+  } catch {
+    return url
+  }
+}
+
+/** 探测单个路径，返回解析后的 JSON（失败返回 null） */
+function probePath(url, pathName, timeout) {
+  return new Promise((resolve) => {
+    let target
+    try {
+      target = new URL(pathName, url)
+    } catch {
+      return resolve(null)
+    }
+    const lib = target.protocol === 'https:' ? https : http
+    const opts = { timeout }
+    // NAS 自签证书很常见，探测阶段放过证书校验
+    if (target.protocol === 'https:') opts.rejectUnauthorized = false
+    const req = lib.get(target, opts, (res) => {
+      let data = ''
+      res.setEncoding('utf8')
+      res.on('data', (c) => { data += c })
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data))
+        } catch {
+          resolve(null)
+        }
+      })
+    })
+    req.on('error', () => resolve(null))
+    req.on('timeout', () => { req.destroy(); resolve(null) })
+  })
+}
+
+/** 探测目标服务器是否是可用的 All-in-One 后端（依次尝试 /health、/api/health） */
+async function detectServer(url, timeout = 3000) {
+  for (const p of ['/health', '/api/health']) {
+    const json = await probePath(url, p, timeout)
+    if (json && (json.status === 'healthy' || json.status === 'ok')) {
+      return { ok: true, path: p }
+    }
+  }
+  return { ok: false, path: null }
+}
+
+/** 探测目标服务器是否是可用的 All-in-One 后端 */
+async function checkServer(url, timeout = 3000) {
+  const r = await detectServer(url, timeout)
+  return r.ok
+}
 
 // ── 工具函数 ──────────────────────────────────────────────────────
 
@@ -164,6 +270,44 @@ async function ensureApiServer() {
   })
 }
 
+/** 根据模式加载页面内容 */
+async function loadContent(win) {
+  const isDev = !app.isPackaged
+
+  // 远程模式：直连 NAS / 服务器，本地不启动后端
+  if (isRemoteMode()) {
+    const url = config.serverUrl
+    console.log(`[APP] 远程模式，连接 ${url}`)
+    const ok = await checkServer(url)
+    if (ok) {
+      win.loadURL(url)
+    } else {
+      showConnectError(url, '无法连接到服务器')
+    }
+    return
+  }
+
+  // 开发模式加载 Vite dev server
+  if (isDev) {
+    win.loadURL('http://localhost:5173')
+    return
+  }
+
+  // 生产模式：前端静态文件由本地后端 serve
+  win.loadURL(`http://127.0.0.1:${actualPort}`)
+}
+
+/** 显示连接失败页 */
+function showConnectError(url, detail) {
+  if (!mainWindow || mainWindow.isDestroyed()) return
+  mainWindow.loadFile(path.join(__dirname, 'error.html'), {
+    query: {
+      url: url || '',
+      detail: detail || '',
+    },
+  })
+}
+
 // ── 窗口 ──────────────────────────────────────────────────────────
 
 function createWindow() {
@@ -181,20 +325,23 @@ function createWindow() {
     },
   })
 
-  // 清除 HTTP 缓存，防止加载旧版本的 JS/CSS chunk
-  mainWindow.webContents.session.clearCache(() => {
-    console.log('[APP] 已清除 HTTP 缓存')
-  })
-
-  // 开发模式加载 Vite dev server
-  const isDev = !app.isPackaged
-  if (isDev) {
-    mainWindow.loadURL(`http://localhost:5173`)
-    // mainWindow.webContents.openDevTools()
-  } else {
-    // 生产模式：前端静态文件由后端 serve
-    mainWindow.loadURL(`http://127.0.0.1:${actualPort}`)
+  // 本地模式清缓存，防止加载旧版本 chunk；远程模式交给服务端 ETag 校验
+  if (!isRemoteMode()) {
+    mainWindow.webContents.session.clearCache(() => {
+      console.log('[APP] 已清除 HTTP 缓存')
+    })
   }
+
+  loadContent(mainWindow)
+
+  // 主框架加载失败 → 连接失败页（错误页自身用 file:// 加载，不会递归）
+  mainWindow.webContents.on('did-fail-load', (_e, errorCode, errorDesc, validatedURL, isMainFrame) => {
+    if (!isMainFrame) return
+    if (!validatedURL || validatedURL.startsWith('file://')) return
+    if (errorCode === -3) return  // ABORTED：主动中断（如重试换页），忽略
+    console.warn(`[APP] 加载失败 ${validatedURL}: ${errorDesc} (${errorCode})`)
+    showConnectError(validatedURL, errorDesc)
+  })
 
   // 关闭窗口 = 隐藏到托盘（而非退出）
   mainWindow.on('close', (e) => {
@@ -207,6 +354,45 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
+}
+
+// ── 连接设置窗口 ──────────────────────────────────────────────────
+
+function openSettingsWindow() {
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.focus()
+    return
+  }
+  settingsWindow = new BrowserWindow({
+    width: 560,
+    height: 460,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    title: '连接设置',
+    parent: mainWindow || undefined,
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, 'settings-preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  })
+  settingsWindow.setMenuBarVisibility(false)
+  settingsWindow.loadFile(path.join(__dirname, 'settings.html'))
+  settingsWindow.once('ready-to-show', () => settingsWindow.show())
+  settingsWindow.on('closed', () => { settingsWindow = null })
+}
+
+/** 重启应用（切换模式后生效） */
+function relaunchApp() {
+  if (apiProcess) {
+    try { apiProcess.kill('SIGTERM') } catch { /* ignore */ }
+    apiProcess = null
+  }
+  app.relaunch()
+  tray = null
+  app.exit(0)
 }
 
 // ── 托盘 ──────────────────────────────────────────────────────────
@@ -228,9 +414,12 @@ function createTray() {
       },
     },
     { type: 'separator' },
+    isRemoteMode()
+      ? { label: `服务器: ${config.serverUrl}`, enabled: false }
+      : { label: `本地服务端口: ${actualPort}`, enabled: false },
     {
-      label: `服务端口: ${actualPort}`,
-      enabled: false,
+      label: '连接设置…',
+      click: openSettingsWindow,
     },
     { type: 'separator' },
     {
@@ -265,6 +454,12 @@ function setAppMenu() {
       label: 'All-in-One',
       submenu: [
         { label: '关于 All-in-One', role: 'about' },
+        { type: 'separator' },
+        {
+          label: '连接设置…',
+          accelerator: 'CmdOrCtrl+,',
+          click: openSettingsWindow,
+        },
         { type: 'separator' },
         { label: '隐藏 All-in-One', role: 'hide' },
         { label: '隐藏其他', role: 'hideOthers' },
@@ -345,6 +540,65 @@ ipcMain.handle('open-external', (_event, url) => {
   shell.openExternal(url)
 })
 
+// 连接设置：读取当前配置
+ipcMain.handle('get-connection-settings', () => ({
+  serverUrl: config.serverUrl || '',
+  mode: isRemoteMode() ? 'remote' : 'local',
+  localPort: actualPort,
+}))
+
+// 连接设置：保存并重启生效
+ipcMain.handle('save-connection-settings', (_e, payload) => {
+  const url = normalizeUrl(payload && payload.serverUrl)
+  saveConfig({ serverUrl: url })
+  if (settingsWindow && !settingsWindow.isDestroyed()) settingsWindow.close()
+  setTimeout(() => relaunchApp(), 200)
+  return { ok: true, serverUrl: url }
+})
+
+// 连接设置：测试连通性
+ipcMain.handle('test-connection', async (_e, raw) => {
+  const url = normalizeUrl(raw)
+  if (!url) return { ok: false, message: '请输入服务器地址' }
+  const r = await detectServer(url, 6000)
+  if (r.ok) {
+    return { ok: true, message: `连接成功：${describeUrl(url)}（${r.path}）`, url }
+  }
+  return {
+    ok: false,
+    url,
+    message: `连不上 ${describeUrl(url)}，请确认端口、容器是否运行、以及防火墙`,
+  }
+})
+
+// 连接失败页：重试
+ipcMain.handle('retry-connect', async () => {
+  if (!mainWindow || mainWindow.isDestroyed()) return { ok: false }
+  if (isRemoteMode()) {
+    const ok = await checkServer(config.serverUrl)
+    if (ok) {
+      mainWindow.loadURL(config.serverUrl)
+      return { ok: true }
+    }
+    return { ok: false }
+  }
+  mainWindow.loadURL(`http://127.0.0.1:${actualPort}`)
+  return { ok: true }
+})
+
+// 连接失败页：切回本地模式
+ipcMain.handle('switch-to-local', () => {
+  saveConfig({ serverUrl: '' })
+  setTimeout(() => relaunchApp(), 200)
+  return { ok: true }
+})
+
+// 打开连接设置窗口
+ipcMain.handle('open-settings', () => {
+  openSettingsWindow()
+  return { ok: true }
+})
+
 // ── 应用生命周期 ──────────────────────────────────────────────────
 
 app.on('window-all-closed', () => {
@@ -370,12 +624,25 @@ app.on('activate', () => {
 app.whenReady().then(async () => {
   try {
     console.log('[APP] 启动 All-in-One 桌面端...')
-    console.log(`[APP] 数据目录: ${getAppDataDir()}`)
+
+    // 读取连接配置
+    config = loadConfig()
 
     // 设置中文菜单
     setAppMenu()
 
-    // 启动或连接 Python 后端
+    // 远程模式：不启动本地后端，直接连接服务器
+    if (isRemoteMode()) {
+      console.log(`[APP] 远程模式: ${config.serverUrl}`)
+      createWindow()
+      createTray()
+      console.log('[APP] 启动完成（远程模式）')
+      return
+    }
+
+    console.log(`[APP] 数据目录: ${getAppDataDir()}`)
+
+    // 本地模式：启动或连接 Python 后端
     await ensureApiServer()
 
     // 如果是自己启动的后端，等待就绪

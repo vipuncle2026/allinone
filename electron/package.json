@@ -41,6 +41,9 @@
     "files": [
       "main.js",
       "preload.js",
+      "settings.html",
+      "settings-preload.js",
+      "error.html",
       "build/**/*"
     ],
     "extraResources": [

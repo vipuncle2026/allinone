@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+<title>连接设置</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-sub: #f7f7f8;
+    --text: #1f2328;
+    --text-sub: #6b7280;
+    --border: #e5e7eb;
+    --primary: #1677ff;
+    --success: #16a34a;
+    --danger: #dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1e1e20;
+      --bg-sub: #2a2a2d;
+      --text: #e8e8ea;
+      --text-sub: #9ca3af;
+      --border: #3a3a3e;
+      --primary: #3b82f6;
+      --success: #4ade80;
+      --danger: #f87171;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 28px;
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.6;
+    -webkit-user-select: none;
+  }
+  h1 { font-size: 15px; font-weight: 500; margin: 0 0 6px; }
+  .sub { color: var(--text-sub); font-size: 12px; margin-bottom: 18px; }
+  label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px; }
+  input[type="text"] {
+    width: 100%;
+    padding: 8px 11px;
+    font-size: 13px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--text);
+    background: var(--bg-sub);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+    -webkit-user-select: text;
+  }
+  input[type="text"]:focus { border-color: var(--primary); }
+  .hint { font-size: 11.5px; color: var(--text-sub); margin-top: 6px; }
+  .row { display: flex; gap: 10px; margin-top: 12px; align-items: center; }
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-sub);
+    color: var(--text);
+    cursor: pointer;
+  }
+  button:hover { border-color: var(--primary); }
+  button.primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+  button.primary:hover { opacity: 0.9; }
+  .status { font-size: 12px; min-height: 18px; }
+  .status.ok { color: var(--success); }
+  .status.err { color: var(--danger); }
+  .panel {
+    background: var(--bg-sub);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-sub);
+  }
+  .panel b { color: var(--text); font-weight: 500; }
+  .panel ul { margin: 6px 0 0; padding-left: 18px; }
+  .panel li { margin: 2px 0; }
+  footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+  <h1>连接设置</h1>
+  <div class="sub">决定这个客户端从哪里读写数据。</div>
+
+  <label for="url">服务器地址（含端口）</label>
+  <input id="url" type="text" placeholder="http://192.168.1.100:8484" spellcheck="false" autofocus>
+  <div class="hint">端口直接写在地址里，例如 NAS 映射到 8484 就填 <b>http://192.168.1.100:8484</b>；留空 = 本地模式（数据保存在这台 Mac 上，与 NAS 互不影响）</div>
+  <div id="parsed" class="hint" style="color:var(--primary);font-weight:600;"></div>
+
+  <div class="row">
+    <button id="btn-test">测试连接</button>
+    <span id="status" class="status"></span>
+  </div>
+
+  <div class="panel">
+    <b>如何选择</b>
+    <ul>
+      <li><b>本地模式</b>：自带后端，数据存本机，断网也能用，但与其他设备不互通</li>
+      <li><b>远程模式</b>：直连 NAS 上的同一套数据，与 PWA / 手机端实时一致</li>
+      <li>外网访问建议装 Tailscale，用 100.x 内网地址，不要把端口暴露到公网</li>
+      <li>端口填 <b>docker compose 里映射到宿主机的端口</b>（如 8484），不是容器内部的 8000</li>
+    </ul>
+  </div>
+
+  <footer>
+    <button id="btn-cancel">取消</button>
+    <button id="btn-save" class="primary">保存并重启</button>
+  </footer>
+
+<script>
+  const $url = document.getElementById('url')
+  const $status = document.getElementById('status')
+  const $parsed = document.getElementById('parsed')
+  const $test = document.getElementById('btn-test')
+  const $save = document.getElementById('btn-save')
+  const $cancel = document.getElementById('btn-cancel')
+
+  /** 实时显示解析后的主机:端口，让用户确认端口有没有填对 */
+  function renderParsed() {
+    const raw = $url.value.trim()
+    if (!raw) {
+      $parsed.textContent = ''
+      return
+    }
+    let v = raw
+    if (!/^https?:\/\//i.test(v)) v = 'http://' + v
+    try {
+      const u = new URL(v)
+      const port = u.port || (u.protocol === 'https:' ? '443' : '80')
+      const note = u.port ? '' : '（未写端口，将用默认端口）'
+      $parsed.textContent = `将连接 → ${u.hostname} : ${port}${note}`
+    } catch {
+      $parsed.textContent = '地址格式有误'
+    }
+  }
+
+  $url.addEventListener('input', renderParsed)
+
+  function setStatus(text, type) {
+    $status.textContent = text
+    $status.className = 'status' + (type ? ' ' + type : '')
+  }
+
+  window.settingsAPI.get().then((cfg) => {
+    $url.value = cfg.serverUrl || ''
+    renderParsed()
+    if (cfg.mode === 'remote') {
+      setStatus('当前：远程模式', '')
+    } else {
+      setStatus('当前：本地模式（端口 ' + cfg.localPort + '）', '')
+    }
+  })
+
+  $test.addEventListener('click', async () => {
+    const val = $url.value.trim()
+    if (!val) return setStatus('请输入服务器地址再测试', 'err')
+    setStatus('正在测试…', '')
+    $test.disabled = true
+    try {
+      const r = await window.settingsAPI.test(val)
+      setStatus(r.message, r.ok ? 'ok' : 'err')
+    } finally {
+      $test.disabled = false
+    }
+  })
+
+  $save.addEventListener('click', async () => {
+    const val = $url.value.trim()
+    if (val) {
+      setStatus('正在验证地址…', '')
+      const r = await window.settingsAPI.test(val)
+      if (!r.ok) {
+        setStatus('地址无法连接，未保存。要强制保存请留空或先修好网络。', 'err')
+        return
+      }
+    }
+    setStatus('已保存，正在重启…', 'ok')
+    await window.settingsAPI.save(val)
+  })
+
+  $cancel.addEventListener('click', () => window.close())
+
+  $url.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') $test.click()
+  })
+</script>
+</body>
+</html>
