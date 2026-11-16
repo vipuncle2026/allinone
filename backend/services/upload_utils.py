@@ -159,3 +159,22 @@ def safe_remove(path: str) -> None:
         os.remove(path)
     except FileNotFoundError:
         pass
+
+
+def suggest_title(data: dict) -> str:
+    """根据解析出的活动数据生成统一命名：MM月DD日 XX.XXkm 骑行
+
+    手动导入与 iGPSPORT 自动同步共用同一套命名规则，避免同一活动出现两种标题。
+    """
+    from datetime import datetime
+
+    dist = data.get("distance_km") or 0
+    ts = data.get("start_time")
+    prefix = f"{dist}km 骑行" if dist else "骑行"
+    if ts:
+        try:
+            dt = ts if isinstance(ts, datetime) else datetime.fromisoformat(str(ts))
+            return f"{dt.strftime('%m月%d日')} {prefix}"
+        except Exception:
+            pass
+    return prefix

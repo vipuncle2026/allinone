@@ -1,0 +1,650 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+    <link href="../../../images/trs_favicon.ico" rel="shortcut icon" type="image/x-icon">
+    <title>货币市场基金监督管理办法_中国证券监督管理委员会_中国政府网</title>
+    <title>货币市场基金监督管理办法__中国政府网</title>
+<meta name="others" content="页面生成时间 2023-05-26 23:35:30">
+<meta name="template,templategroup,version" content="6051,100053,1.0" />
+<meta name="keywords" content="投资,市场,管理,基金,货币">
+<meta name="description" content='（2015年12月17日证监会、人民银行 证监会令第120号公布  自2016年2月1日起施行）' />
+<meta name="catalog" content="c21187">
+<meta name="lanmu" content="部门规章">
+<meta name='manuscriptId' content="5726824">
+<meta name='author' content="">
+<meta name="firstpublishedtime" content="2021-12-16-00:00:00">
+<meta name="lastmodifiedtime" content="2021-12-16-00:00:00">
+<script>
+var INFO_FLAG={
+	channelinfo:"部门规章202228949"
+}
+</script>
+    <link href="../../../images/trs_public.css" rel="stylesheet" type="text/css" />
+    <link href="../../../images/trs_tynry.css" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" href="../../../images/trs_forPrintStyle.css?t=20230526233530">
+
+    <link rel="stylesheet" type="text/css" href="../../../images/trs_mobile_pub.css" media="screen and (max-width:767px) and (orientation:portrait)" />
+    <link rel="stylesheet" type="text/css" href="../../../images/trs_nry_mobile.css" media="screen and (max-width:767px) and (orientation:portrait)" />
+    <script src="../../../images/trs_jquery.min.js"></script>
+    <script src="../../../images/trs_h5.js"></script>
+    <script src="../../../images/trs_nry_resize.js"></script>
+    <script src="../../../images/trs_common_pages.js"></script>
+    <!--script src="trs_audio.min.js" OLDSRC="trs_audio.min.js" OLDID="1259" RELATED="1"></script-->
+    <script type="text/javascript" src="../../../images/trs_hover.js"></script>
+    <style>
+        .page-wrap {
+          text-align: center;
+        }
+        .page-wrap a {
+          display: inline-block;
+          width: 24px;
+          height: 24px;
+          line-height: 24px;
+          text-align: center;
+          margin: 0 3px;
+          background: #dedede;
+          color: #313131;
+        }
+        .page-wrap .on {
+          background: #0b67a6;
+          color: #fffdf4;
+          width: 24px;
+          font-size: 16px;
+          display: inline-block;
+          height: 24px;
+          line-height: 24px;
+          text-align: center;
+          margin: 0 3px;
+        }
+    </style>
+    <style>
+      .padd {
+        padding-bottom: 26px;
+      }
+      .pages_content {
+        line-height: 38px;
+        padding: 0px 0px 40px 0px;
+        border-bottom: 5px solid #015293;
+      }
+      .pages_content img {
+          max-width: 100%;
+      }
+      .gjgzk_wz {
+          margin-top: 20px;
+          margin-bottom: 14px;
+          text-align: right;
+          margin-right: 32px;
+      }
+      .editor {
+          margin-top: 53px;
+          margin-right: 57px;
+          margin-bottom: 46px;
+      }
+      .editor span {
+          margin-right: 9px;
+      }
+      .editor span a {
+          color: #333;
+      }
+
+      @media screen and (max-width: 767px) and (orientation: portrait) {
+            .pages_content p {
+                font-size: 24pt !important;
+                font-family: '宋体';
+            }
+            .pages_content p span {
+                font-size: 36px !important;
+                font-family: '宋体';
+                color: #000;
+            }
+            .pages_content p:nth-child(1) span {
+                font-size: 40px !important;
+            }
+            .BreadcrumbNav {
+                font-family: "Segoe UI";
+            }
+
+            .content {
+                margin-top: 20px;
+            }
+            .padd {
+              padding-bottom: 0;
+            }
+            .oneColumn.pub_border {
+                padding: 32px 0 0 0;
+            }
+            .pages_content {
+                padding: 0;
+                border-bottom: none;
+            }
+            .pages_content p {
+                margin-top: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<!--header-->
+<link rel="stylesheet" type="text/css" href="/images/trs_FZYouHK_512B.css">
+<link rel="stylesheet" type="text/css" href="/images/trs_FZZHUNYSK.css">
+<style>
+  /* 20231023添加无障碍代码 */
+  .header_toolbar li {
+    font-size: 16px;
+  }
+
+  .header_toolbar li.split {
+    margin: 0 9px;
+  }
+</style>
+<div class="header">
+  <div class="container mhide">
+    <div class="padding pos_r">
+      <div class="header_logo"><a href="https://www.gov.cn/" target="_blank" aria-label="中国政府网"><img src="/images/gtrs_logo_lt.png" alt="" /><img src="/images/gtrs_logo_rt.png" alt="" class="wordlogo" /></a></div>
+      <div class="header_search">
+        <form>
+          <input type="hidden" name="t" value="govall" />
+          <input class="header_search_txt" name="headSearchword" type="text" autocomplete="off" value="" onkeydown="listenerKeyUpEventFn()" />
+          <button class="header_search_btn" type="button" value="&nbsp;" onClick="goSearch(this)" />
+        </form>
+      </div>
+      <ul class="header_toolbar">
+        <li><a href="https://www.gov.cn/" target="_blank">首页</a></li>
+        <li class="split">|</li>
+        <li><a href="../../" target="_blank">简</a></li>
+        <li class="split">|</li>
+        <li><a href="http://big5.www.gov.cn/gate/big5/www.gov.cn/" target="_blank">繁</a></li>
+        <li class="split">|</li>
+        <li><a href="http://english.www.gov.cn/" target="_blank">EN</a></li>
+        <li class="split">|</li>
+        <li class="nologin"><a id="userlogin" href="javascript:void(0);">登录</a></li>
+        <li class="yeslogin hide">
+          <a id="showname" href="javascript:void(0);"></a>
+          <ul>
+            <li class="usercenter"><a id="usercenter" href="javascript:void(0);">个人中心</a></li>
+            <li><a id="logout" href="javascript:void(0);">退出</a></li>
+          </ul>
+        </li>
+        <li class="split">|</li>
+        <li><a target="_blank" href="https://mail.www.gov.cn/nsmail/index.html">邮箱</a></li>
+        <li class="split">|</li>
+        <li><a href="javascript:;" onclick="aria.start()" clickhide="false">无障碍</a></li>
+
+      </ul>
+    </div>
+  </div>
+  <div class="container pchide">
+    <a href="https://www.gov.cn/" class="logo" target="_blank"><img src="/images/newlogo19ysp_lt.png" /><img src="/images/newlogo19ysp_rt.png" class="wordlogo" /></a>
+    <a class="lang" href="https://english.www.gov.cn/">EN</a>
+    <a href="javascript:;" class="search" id="searchBtn">
+      <img class="s1" src="/images/gtrs_newsearch.png" alt="" />
+      <img class="s2" src="/images/gtrs_newshouqi.png" alt="" />
+    </a>
+
+    <div class="searchBox">
+      <div class="search">
+        <form style="font-size:32px;">
+          <input class="text search_mi" name="headSearchword" type="text" placeholder="请输入关键字……" onkeydown="listenerKeyUpEventFn()" />
+          <input class="image search_fr" type="button" value="" onClick="goSearch(this)" />
+        </form>
+        <script>
+          function goSearch(event) {
+            var e = window.event || event;
+            if(e.preventDefault){
+              e.preventDefault();
+            }else{
+              e.returnValue=false;
+            }
+            var s = '', m = document.querySelector('.header .pchide [name=headSearchword]');
+            s = m.offsetHeight > 0 ? m.value : document.querySelector('.header .mhide [name=headSearchword]').value;
+            // 市场主体 dataTypeId=14
+            if (s == '市场主体') {
+              url = '//sousuo.www.gov.cn/sousuo/search.shtml?code=17da70961a7&dataTypeId=14&searchWord=' + s;
+            } else {
+              url = '//sousuo.www.gov.cn/sousuo/search.shtml?code=17da70961a7&dataTypeId=107&searchWord=' + encodeURIComponent(s);
+            }
+            window.open(url, '_blank');
+          }
+          function listenerKeyUpEventFn(){
+            if(event.keyCode==13){
+              goSearch();
+            };
+          }
+        </script>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="siteurl hide">https://www.gov.cn/</div>
+
+<script src="/images/jquery.pagination.js"></script>
+<script src="https://user.www.gov.cn/static/js/yh-idm5.0.0.js"></script>
+<script src="https://user.www.gov.cn/static/js/md5.js"></script>
+<script type="text/javascript" src="/images/pub.js"></script>
+<script>
+			//繁体和简体相互转换
+			var currUrl = window.location.href;
+			
+			var flag = currUrl.indexOf("big5.www.gov.cn/gate/big5/");
+			
+			var jtzw = 'ht'+'tps://www.gov.cn';
+			
+			//繁体
+			if (flag > 0) { 
+				
+				$('.header_logo a').attr('href',jtzw);
+				
+				$('.header_toolbar li').eq(2).find('a').attr('href', jtzw);
+				
+			}//简体
+			else { 
+				
+				$('.header_toolbar li').eq(2).find('a').attr('href', jtzw);
+				
+			};
+		</script>
+<!--  <a href="javascript:void(0)" onclick="aria.start()" style="position: absolute;top: 0px;" class='mhide'>网站无障碍开关</a> -->
+
+</html>
+<!--end header-->
+<div class="content content_gjgzk">
+    <div class="padd">
+            <div id="ti" class="guohui_logo">
+                <img src="../../../images/guizhangkuguohui.jpg" alt="" />
+                
+                  <img src="../../../images/中国证券监督管理委员会.jpg" alt="" />
+                
+
+                
+            </div>
+            <div class="pages-date-gjgzk mhide">
+                <span class="font">来源： 
+                    证监会网站
+                </span>
+                <div class="pages_print pages_print_gjgzk">
+                    <span class="font index_switchsize font_gjgzk">【字体：<span class="bigger">大</span> <span
+                        class="medium">中</span> <span class="smaller">小</span>】</span>
+            <span class="font downIco" style="display: none;"><a href="">视频下载</a></span>
+            <span style="cursor:pointer;" class="font printIco printIco_gjgzk font_gjgzk" onclick="forPrintEventListenerFn('beforeprint')">打印</span>
+                </div>
+            </div>
+
+            <div class="article oneColumn pub_border" style="border: none;">
+              <div class="pages_content" id="UCAP-CONTENT">
+                  <p style="font-size: 12pt; text-align: center;"><span style="font-size: 20pt; font-weight: bold;">货币市场基金监督管理办法</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;"><span style="font-size: 13.5pt;">（2015年12月17日证监会、人民银行 证监会令第120号公布&nbsp; 自2016年2月1日起施行）</span></span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;">第一章 总  则</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第一条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　为了促进公开募集证券投资基金（以下简称基金）的发展，规范货币市场基金的募集、运作及相关活动，保护投资人及相关当事人的合法权益，根据《证券投资基金法》及其他有关法律、行政法规，制定本办法。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　本办法所称货币市场基金是指仅投资于货币市场工具，每个交易日可办理基金份额申购、赎回的基金。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">在基金名称中使用“货币”、“现金”、“流动”等类似字样的基金视为货币市场基金，适用本办法。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">基金管理人可以按照本办法的规定，根据市场与投资者需求，开发设计不同风险收益特征的货币市场基金产品，拓展货币市场基金作为现金管理工具的各项基础功能。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　中国证监会、中国人民银行依照法律、行政法规、本办法的规定和审慎监管原则，对货币市场基金运作活动实施监督管理。</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;">第二章 投资范围与投资限制</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第四条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金应当投资于以下金融工具：</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（一）现金；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（二）期限在1年以内（含1 年）的银行存款、债券回购、中央银行票据、同业存单；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（三）剩余期限在397天以内（含397 天）的债券、非金融企业债务融资工具、资产支持证券；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（四）中国证监会、中国人民银行认可的其他具有良好流动性的货币市场工具。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第五条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金不得投资于以下金融工具：</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（一）股票；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（二）可转换债券、可交换债券；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（三）以定期存款利率为基准利率的浮动利率债券，已进入最后一个利率调整期的除外；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（四）信用等级在AA＋以下的债券与非金融企业债务融资工具；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（五）中国证监会、中国人民银行禁止投资的其他金融工具。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第六条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金投资于相关金融工具的比例应当符合下列规定：</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（一）同一机构发行的债券、非金融企业债务融资工具及其作为原始权益人的资产支持证券占基金资产净值的比例合计不得超过10%，国债、中央银行票据、政策性金融债券除外；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（二）货币市场基金投资于有固定期限银行存款的比例，不得超过基金资产净值的30%，但投资于有存款期限，根据协议可提前支取的银行存款不受上述比例限制；货币市场基金投资于具有基金托管人资格的同一商业银行的银行存款、同业存单占基金资产净值的比例合计不得超过 20%，投资于不具有基金托管人资格的同一商业银行的银行存款、同业存单占基金资产净值的比例合计不得超过 5%。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第七条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金应当保持足够比例的流动性资产以应对潜在的赎回要求，其投资组合应当符合下列规定：</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（一）现金、国债、中央银行票据、政策性金融债券占基金资产净值的比例合计不得低于5%；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（二）现金、国债、中央银行票据、政策性金融债券以及五个交易日内到期的其他金融工具占基金资产净值的比例合计不得低于10%；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（三）到期日在 10 个交易日以上的逆回购、银行定期存款等流动性受限资产投资占基金资产净值的比例合计不得超过30%；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（四）除发生巨额赎回、连续3个交易日累计赎回20%以上或者连续5个交易日累计赎回30%以上的情形外，债券正回购的资金余额占基金资产净值的比例不得超过20%。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第八条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　因市场波动、基金规模变动等基金管理人之外的因素致使货币市场基金投资不符合本办法第六条及第七条第（二）、（三）、（四）项规定的比例或者基金合同约定的投资比例的，基金管理人应当在10 个交易日内进行调整，但中国证监会规定的特殊情形除外。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第九条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金投资组合的平均剩余期限不得超过120天，平均剩余存续期不得超过240 天。</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;">第三章 基金份额净值计价与申购赎回</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　对于每日按照面值进行报价的货币市场基金，可以在基金合同中将收益分配的方式约定为红利再投资，并应当每日进行收益分配。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十一条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金应当采取稳健、适当的会计核算和估值方法。在确保基金资产净值能够公允地反映基金投资组合价值的前提下，可采用摊余成本法对持有的投资组合进行会计核算，但应当在基金合同、基金招募说明书中披露该核算方法及其可能对基金净值波动带来的影响。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">前款规定的基金估值核算方法在特殊情形下不能公允反映基金价值的，货币市场基金可以采用其他估值方法。该特殊情形及该估值方法应当在基金合同中约定。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十二条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　对于采用摊余成本法进行核算的货币市场基金，应当采用影子定价的风险控制手段，对摊余成本法计算的基金资产净值的公允性进行评估。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">当影子定价确定的基金资产净值与摊余成本法计算的基金资产净值的负偏离度绝对值达到0.25%时，基金管理人应当在5个交易日内将负偏离度绝对值调整到0.25%以内。当正偏离度绝对值达到0.5%时，基金管理人应当暂停接受申购并在 5个交易日内将正偏离度绝对值调整到 0.5%以内。当负偏离度绝对值达到0.5%时，基金管理人应当使用风险准备金或者固有资金弥补潜在资产损失，将负偏离度绝对值控制在0.5%以内。当负偏离度绝对值连续两个交易日超过0.5%时，基金管理人应当采用公允价值估值方法对持有投资组合的账面价值进行调整，或者采取暂停接受所有赎回申请并终止基金合同进行财产清算等措施。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">前述情形及处理方法应当事先在基金合同中约定并履行信息披露义务。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十三条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　对于不收取申购、赎回费的货币市场基金，可以按照不高于 0.25%的比例从基金资产计提一定的费用，专门用于本基金的销售与基金持有人服务。基金年度报告应当对该项费用的列支情况作专项说明。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十四条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　为了保护基金份额持有人的合法权益，基金管理人可以依照相关法律法规以及基金合同的约定，在特定市场条件下暂停或者拒绝接受一定金额以上的资金申购。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十五条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　当日申购的基金份额应当自下一个交易日起享有基金的分配权益；当日赎回的基金份额自下一个交易日起不享有基金的分配权益，但中国证监会认定的特殊货币市场基金品种除外。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十六条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金的基金份额可以在依法设立的交易场所进行交易，或者按照法律法规和合同约定进行协议转让。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十七条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当建立健全内部流动性风险控制制度，细化流动性风险管理措施。在满足相关流动性风险管理要求的前提下，当货币市场基金持有的现金、国债、中央银行票据、政策性金融债券以及5 个交易日内到期的其他金融工具占基金资产净值的比例合计低于5%且偏离度为负时，为确保基金平稳运作，避免诱发系统性风险，基金管理人应当对当日单个基金份额持有人申请赎回基金份额超过基金总份额 1%以上的赎回申请征收 1%的强制赎回费用，并将上述赎回费用全额计入基金财产。基金管理人与基金托管人协商确认上述做法无益于基金利益最大化的情形除外。前述情形及处理方法应当事先在基金合同中约定。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">为公平对待不同类别基金份额持有人的合法权益，货币市场基金应当在基金合同中约定，单个基金份额持有人在单个开放日申请赎回基金份额超过基金总份额 10%的，基金管理人可以采取延期办理部分赎回申请或者延缓支付赎回款项的措施。</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;">第四章 宣传推介与信息披露</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十八条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当在货币市场基金的招募说明书及宣传推介材料的显著位置列明，投资者购买货币市场基金并不等于将资金作为存款存放在银行或者存款类金融机构，基金管理人不保证基金一定盈利，也不保证最低收益。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第十九条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人、基金销售机构在从事货币市场基金销售活动过程中，应当按照有关法律法规规定制作宣传推介材料，严格规范宣传推介行为，充分揭示投资风险，不得承诺收益，不得使用与货币市场基金风险收益特征不相匹配的表述，不得夸大或者片面宣传货币市场基金的投资收益或者过往业绩。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">除基金管理人、基金销售机构外，其他机构或者个人不得擅自制作或者发放与货币市场基金相关的宣传推介材料；登载货币市场基金宣传推介材料的，不得片面引用或者修改其内容。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金销售支付结算机构等相关机构开展与货币市场基金相关的业务推广活动，应当事先征得合作基金管理人或者基金销售机构的同意，严格遵守相关法律法规的规定，不得混同、比较货币市场基金与银行存款及其他产品的投资收益，不得以宣传理财账户或者服务平台等名义变相从事货币市场基金的宣传推介活动。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十一条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人、基金销售机构独立或者与互联网机构等其他机构合作开展货币市场基金互联网销售业务时，应当采取显著方式向投资人揭示提供基金销售服务的主体、投资风险以及销售的货币市场基金名称，不得以理财账户或者服务平台的名义代替基金名称，并对合作业务范围、法律关系界定、信息安全保障、客户信息保密、合规经营义务、应急处置机制、防范非法证券活动、合作终止时的业务处理方案、违约责任承担和投资人权益保护等进行明确约定。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十二条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人、基金销售机构与互联网机构等其他机构合作开展货币市场基金销售业务，不得有以下情形：</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（一）未经中国证监会注册取得基金销售业务资格，擅自从事基金宣传推介、份额发售与申购赎回等相关业务；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（二）侵占或者挪用基金销售结算资金；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（三）欺诈误导投资人；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（四）未向投资人充分揭示投资风险；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（五）泄露投资人客户资料、交易信息等非公开信息；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（六）从事违法违规经营活动；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（七）法律法规及中国证监会规定的其他情形。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十三条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人、基金销售机构、基金销售支付结算机构以及互联网机构在从事或者参与货币市场基金销售过程中，向投资人提供快速赎回等增值服务的，应当充分揭示增值服务的业务规则，并采取有效方式披露增值服务的内容、范围、权利义务、费用及限制条件等信息，不得片面强调增值服务便利性，不得使用夸大或者虚假用语宣传增值服务。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">从事基金销售支付结算业务的非银行支付机构应当严格按照《支付机构客户备付金存管办法》有关要求存放、使用、划转客户备付金，不得将客户备付金用于基金赎回垫支。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十四条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当严格按照有关基金信息披露法律法规要求履行货币市场基金的信息披露义务，鼓励基金管理人结合自身条件，自愿增加货币市场基金信息披露的频率和内容，提高货币市场基金的透明度。</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-family: 黑体; font-size: 14pt;">第五章 风险控制</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-family: 黑体; font-size: 14pt;"><br>
+</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十五条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人从事货币市场基金投资管理活动，应当坚持组合管理、分散投资的基本原则，严格按照本办法规定和基金合同约定的投资范围与比例限制进行资产配置，构建与货币市场基金风险收益特征相匹配的投资组合。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十六条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当建立健全货币市场基金相关投资管理制度、风险控制系统与信息技术系统，加强对流动性风险、利率风险、信用风险、交易对手风险、道德风险等各类风险的管理与控制。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十七条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当注重货币市场基金操作风险的防控，针对货币市场基金申购赎回、交易清算、估值核算、信息披露等环节制定相关业务操作指引并建立风险识别与管理制度，提高从业人员的风险防范意识与业务操作能力。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十八条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当加强货币市场基金从事逆回购交易的流动性风险和交易对手风险的管理，合理分散逆回购交易到期日和交易对手的集中度，加强逆回购交易质押品资质和质押品期限的控制，质押品按公允价值计算应当足额。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第二十九条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当加强对货币市场基金投资银行存款风险的评估与研究，严格测算与控制投资银行存款的风险敞口，针对不同类型存款银行建立相关投资限制制度，投资各类银行存款所形成的潜在利息损失应当与基金管理人的风险准备金规模相匹配。如果出现因提前支取而导致利息损失的情形，基金管理人应当使用风险准备金予以弥补，风险准备金不足的，应当使用固有资金予以弥补。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当建立和完善货币市场基金债券投资的内部信用评级制度，综合运用外部信用评级与内部信用评级结果，按照审慎原则具体限定不同信用等级金融工具的投资限制。基金管理人应当对货币市场基金已投资的信用类金融工具建立内部评级跟踪制度与估值风险防范机制，并保留相关资料备查。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十一条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当将压力测试作为货币市场基金风险管理的重要手段，建立科学审慎、全面有效的压力测试制度，结合自身风险管理水平与市场情况定期或者不定期开展压力测试，并针对压力测试结果及时采取防范措施，同时将最近一个年度的压力测试工作底稿留存备查。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十二条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金遇到下列极端风险情形之一的，基金管理人及其股东在履行内部程序后，可以使用固有资金从货币市场基金购买金融工具：</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（一）货币市场基金持有的金融工具出现兑付风险；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（二）货币市场基金发生巨额赎回，且持有资产的流动性难以满足赎回要求；</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">（三）货币市场基金负偏离度绝对值超过0.25%时，需要从货币市场基金购买风险资产。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">基金管理人及其股东购买相关金融工具的价格不得低于该金融工具的账面价值。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">前述事项发生后，基金管理人应当在两个交易日内向中国证监会报告，并依法履行信息披露义务，其中涉及到银行间市场的，应当遵守中国人民银行有关规定，向相关部门备案。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十三条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人应当坚持稳健经营理念，其货币市场基金管理规模应当与自身的人员储备、投研和客服能力、风险管理和内部控制水平相匹配，杜绝片面追求收益率和基金规模，不得以收益率作为基金经理考核评价的唯一标准，不得通过交易上的安排规避本办法对投资范围、投资比例、平均剩余期限及存续期的相关规定，不得违规从事或者参与债券代持交易。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十四条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金托管人应当切实履行共同受托职责，严格按照本办法规定对所托管的货币市场基金的日常投资运作活动实施监督，与基金管理人共同做好货币市场基金的风险管理工作，可以根据市场情况及业务发展的需要，对货币市场基金提供流动性支持服务。</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;">第六章 监督管理与法律责任</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十五条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金的份额净值计价、募集、申购、赎回、投资、信息披露、宣传推介等活动，应当遵守有关法律法规和本办法的规定。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十六条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　货币市场基金在全国银行间市场的交易、结算等市场行为，应当遵守中国人民银行关于全国银行间市场的管理规定，并接受中国人民银行的监管和动态检查。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十七条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人、基金托管人在管理与托管货币市场基金过程中，因违反法律法规或者基金合同约定导致基金财产或者基金份额持有人损失的，应当分别对各自的行为依法承担赔偿责任；因共同行为导致基金财产或者基金份额持有人损失的，应当承担连带赔偿责任。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十八条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人违反本办法规定的，中国证监会可以采取责令改正、监管谈话、出具警示函，整改期间暂停受理及审查基金产品募集申请或者其他业务申请等行政监管措施，记入诚信档案；对直接负责的主管人员和其他直接责任人员，可以依法采取监管谈话、出具警示函、认定为不适当人选等行政监管措施，记入诚信档案；情节严重的，可以对基金管理人及其直接负责的主管人员和其他直接责任人员单处或者并处警告、3万元以下罚款；涉嫌犯罪的，依法移送司法机关，追究刑事责任。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第三十九条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金管理人在管理货币市场基金过程中，由于风险管理不善而发生重大风险事件或者存在重大违法违规行为的，中国证监会可以责令基金管理人提高风险准备金的计提比例或者一次性补足一定金额的风险准备金；情节严重的，可以根据《证券投资基金法》有关规定，对基金管理人采取责令停业整顿、指定其他机构托管、接管、取消基金管理资格或者撤销等监管措施。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第四十条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金托管人未按照本办法规定履行货币市场基金托管职责的，中国证监会可以依据《证券投资基金托管业务管理办法》有关规定采取行政监管措施。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第四十一条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　基金销售机构、基金销售支付机构及互联网机构等相关机构或者个人在从事或者参与货币市场基金的销售、宣传推介等活动过程中，违反本办法规定的，中国证监会可以依据《证券投资基金销售管理办法》等有关规定采取行政监管措施。</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;">第七章 附  则</span></p>
+<p style="font-size: 12pt; text-align: center;"><span style="font-size: 14pt; font-family: 黑体;"><br>
+</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第四十二条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　本办法由中国证监会、中国人民银行负责解释。</span></p>
+<p style="text-indent: 2em; font-size: 12pt;"><span style="font-size: 14pt; font-family: 黑体;">第四十三条</span><span style="font-size: 14pt; font-family: 仿宋, 仿宋_GB2312;">　本办法自2016年2月1日起施行。《货币市场基金暂行规定》（证监发〔2004〕78号）、《关于货币市场基金投资等相关问题的通知》（证监基金字〔2005〕41号）、《关于货币市场基金投资短期融资券有关问题的通知》（证监基金字〔2005〕163号）、《关于货币市场基金投资银行存款有关问题的通知》（证监发〔2005〕190号）、《关于加强货币市场基金风险控制有关问题的通知》（基金部通知〔2011〕41号）等文件同时废止。</span></p>
+<p style="text-indent: 2em; font-family: 宋体; font-size: 12pt;"></p>
+
+                  <div style="display:none">
+                      
+                  </div>
+              </div>
+
+              <div class="gjgzk_wz mhide">
+                <img src="/govweb/xhtml/2016gov/public/20221114guizhangkuxilan/images/gjgzk00v3.jpg" />
+              </div>
+              <div class="m-gjgzk_wz pchide">国家规章库</div>
+
+              <script type="text/javascript"></script>
+              <div id="div_div" class="mhide">
+                  <div id="qr_container" style="margin:auto; position:relative;">扫一扫在手机打开当前页</div>
+              </div>
+              <!-- 用来校验该浏览器是否支持HTML5 -->
+              <canvas id="Canvas"></canvas>
+
+              <div class="editor mhide">
+                  <span style="cursor:pointer;" onclick="forPrintEventListenerFn('beforeprint')"><a>【打印】</a></span>
+                  <span>
+                      <a href="https://www.gov.cn/fuwu/jiucuo.htm" target="_blank">【我要纠错】</a>
+                  </span>
+                  <span style="cursor:pointer;" onclick="window.close();"><a>【关闭窗口】</a></span>
+              </div>
+
+              <!--相关稿件-->
+              <div class="xg-list related">
+                  <div class="pannel-title">相关稿件</div>
+                  <ul class="list01">
+                      
+                  </ul>
+              </div>
+              <!--相关稿件-->
+            </div>
+            <div class="clear"></div>
+    </div>
+    <div class="clear"></div>
+</div>
+<!--mobi banner-->
+
+<!--end mobi banner-->
+<!--公共尾开始-->
+<style type="text/css">
+  .footer{
+    padding-top: 0;
+  }
+  .footer_dzjg {
+      padding: 14px 22px 0 0;
+          width: 90px;
+  }
+  .footer_dzjg span{
+    display: block;
+  }
+  .footer_txt{
+    margin-top: 27px;
+  }
+  .footer_r {
+      margin-top: 25px;
+  }
+  .barrierFree20231007{
+    width: 80px;
+    height: 37px;
+  }
+  #_ideConac a {
+    display: block;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+}
+</style>
+<div class="footer_wrap">
+  <div class="container mhide">
+    <div class="footer_links footer_links1">
+      <ul class="clearfix">
+        <li>链接：</li>
+        <li><a href="http://www.npc.gov.cn/" target="_blank">全国人大</a></li>
+        <li>|</li>
+        <li><a href="http://www.cppcc.gov.cn/" target="_blank">全国政协</a></li>
+        <li>|</li>
+        <li><a href="http://www.ccdi.gov.cn/" target="_blank">国家监察委员会</a></li>
+        <li>|</li>
+        <li><a href="http://www.court.gov.cn/" target="_blank">最高人民法院</a></li>
+        <li>|</li>
+        <li><a href="http://www.spp.gov.cn/" target="_blank">最高人民检察院</a></li>
+      </ul>
+    </div>
+
+    <div class="footer_links footer_links2">
+      <ul class="clearfix">
+        <li><a href="https://www.gov.cn/home/2023-03/29/content_5748953.htm" target="_blank">国务院部门网站</a></li>
+        <li>|</li>
+        <li><a href="https://www.gov.cn/home/2023-03/29/content_5748954.htm" target="_blank">地方政府网站</a></li>
+        <li>|</li>
+        <li><a href="https://www.gov.cn/home/2023-03/29/content_5748955.htm" target="_blank">驻港澳机构网站</a></li>
+        <li>|</li>
+        <li><a href="https://www.gov.cn/home/2023-03/29/content_5748956.htm" target="_blank">驻外机构</a></li>
+      </ul>
+    </div>
+
+    <div class="footer over_hide">
+
+      <div class="footer_l fl">
+        <div class="footer_dzjg fl">
+            <span id="_ideConac"><a
+                    href="https://bszs.conac.cn/sitename?method=show&amp;id=081D1D6883441A53E053012819AC0DAA"
+                    target="_blank"><img id="imgConac" vspace="0" hspace="0" border="0" src="/images/red.png" data-bd-imgshare-binded="1" /></a>
+            </span>
+      <!-- 无障碍 -->
+      <span class="barrierFree20231007"><img src="https://www.gov.cn/images/20230928shilaohuaicon.jpg" /></span>
+        </div>
+
+
+        <div class="footer_txt fl">
+          <div class="footer_nav">
+            <span><a href="https://www.gov.cn/index.htm" target="_blank">中国政府网</a></span>
+            <span class="split">|</span>
+            <span><a href="https://www.gov.cn/home/2016-05/11/content_5046257.htm" target="_blank">关于本网</a></span>
+            <span class="split">|</span>
+            <span><a href="https://www.gov.cn/home/2014-02/23/content_5046258.htm" target="_blank">网站声明</a></span>
+            <span class="split">|</span>
+            <span><a href="https://www.gov.cn/home/2014-02/23/content_5046259.htm" target="_blank">联系我们</a></span>
+            <span class="split">|</span>
+            <span><a href="https://www.gov.cn/fuwu/jiucuopage.html" target="_blank">网站纠错</a></span>
+          </div>
+
+          <div class="footer_copyright">
+            <p class="footer_bg_gray zbd">主办单位：国务院办公厅　运行维护单位：中国政府网运行中心 </p>
+            <p class="footer_bg_gray bqs">版权所有：中国政府网　中文域名：<fjtignoreurl>中国政府网.政务</fjtignoreurl>
+            </p>
+            <p>网站标识码bm01000001　<a class="banquan" href="https://beian.miit.gov.cn/#/Integrated/index"
+                                  target="_blank">京ICP备05070218号</a>　<img style="padding-top:2px;" src="/images/2018guohui03.png" /><a class="banquan"
+                                                                                            href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010202000001"
+                                                                                            target="_blank">京公网安备11010202000001号</a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer_r fr">
+        <div class="fl footer_ewm footer_ewm_gkhd">
+          <a href="http://app.www.gov.cn/download/Chinese.html" target="_blank"><img src="/images/icon_1234.png" alt="" /><span>国务院客户端</span></a>
+        </div>
+        <div class="fl footer_ewm footer_ewm_xcx">
+          <a href="https://www.gov.cn/guowuyuan/gwykhdxcx/xiaochengxu.html" target="_blank"><img src="/images/icon_724.png" alt="" /><span>国务院客户端小程序</span></a>
+        </div>
+        <div class="fl footer_wxwb">
+          <a href="https://www.gov.cn/home/2014-02/18/content_5046260.htm" target="_blank"><img src="/images/icon_1434.png" width="48" height="48" /></a>
+          <a href="https://www.gov.cn/home/2014-02/18/content_5046260.htm" target="_blank"><img src="/images/icon_1534.png" width="48" height="48" /></a>
+          <p><a href="https://www.gov.cn/home/2014-02/18/content_5046260.htm" target="_blank">中国政府网微博、微信</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="container pchide">
+    <div class="newfooter">
+      <ul class="btnlist">
+        <li><a id="godesktop" data-rel="desktop" class="am-footer-desktop" href="#">电脑版</a></li>
+        <li><a href="https://app.www.gov.cn/govdata/html/download.html?from=singlemessage">客户端</a></li>
+        <li><a href="https://www.gov.cn/guowuyuan/gwykhdxcx/xiaochengxu.html">小程序</a></li>
+        <li><a href="https://weibo.com/zhengfu">微博</a></li>
+        <li><a href="https://www.gov.cn/home/2014-02/18/content_5046260.htm">微信</a></li>
+        <li><a href="https://mail.www.gov.cn/nsmail/index.html">邮箱</a></li>
+      </ul>
+      <ul class="loginList">
+        <li class="yeslogin hide">
+          <img class="userImg" src="/images/userImg.png" alt="" />
+          <a id="showname1" href="javascript:;"></a>
+        </li>
+        <li class="yeslogin hide"><a id="logOutBtn1" href="javascript:;">退出</a></li>
+        <li class="nologin"><a id="userreg1" href="javascript:;">注册</a></li>
+        <li class="nologin"><a id="userlogin1" href="javascript:;">登录</a></li>
+        <li class="nologin"><a id="userlogin2" href="https://www.gov.cn/fuwu/jiucuopage.html">网站纠错</a></li>
+      </ul>
+      <div class="box">
+        <a class="left" href="http://bszs.conac.cn/sitename?method=show&id=081D1D6883441A53E053012819AC0DAA" target="_blank"><img id="imgConac" vspace="0" hspace="0" border="0" src="/images/gtrs_red.png" data-bd-imgshare-binded="1" /></a>
+        <div class="right">
+          <p>主办单位：国务院办公厅　运行维护单位：中国政府网运行中心</p>
+          <p>版权所有：中国政府网　中文域名：<fjtignoreurl>中国政府网.政务</fjtignoreurl>
+          </p>
+          <p>网站标识码bm01000001</p>
+          <p>京ICP备05070218号　京公网安备11010202000001号</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function () {
+    trs_bottom.init();
+    initShow();
+  });
+
+  var trs_bottom = (function () {
+    function init() {
+      if (typeof (trs) != 'undefined') {
+        // trs.PcBackTop()
+        trs.SearchFn()
+      }
+    }
+
+    return {
+      init: init
+    }
+  })();
+
+  function initShow() {
+    var isShowPc = localStorage.getItem('isShowPc')
+    if (isShowPc && isShowPc === 'true') {
+      $("meta[name='viewport']").attr("content", "width=1280, target-densitydpi=device-dpi")
+      $('body').append('<div id="showMobi" class="showMobi"><img src="/images/trs_mobiIcon.png" />返回手机版</div>')
+    } else {
+      $("meta[name='viewport']").attr("content", "width=750, user-scalable=no, target-densitydpi=device-dpi")
+      $('#showMobi').remove()
+    }
+  }
+</script>
+<script defer async type="text/javascript" src="//wza.www.gov.cn/dist/aria.js?appid=44fa773aaaee697bd3f5d0fbfc36bf83" charset="utf-8" wapForceOldFixed="false" loadData="false" id="ariascripts"></script><!--微信分享图功能-->
+<div class="share-title" style="display:none">货币市场基金监督管理办法</div>
+<div class="share-substr" style="display:none">（2015年12月17日证监会、人民银行 证监会令第120号公布  自2016年2月1日起施行）</div>
+<img class="share-img" style="display:none" src="../../../images/150.jpg" width="300" height="300" />
+<script src="../../../images/jweixin-1.0.0.js"></script>
+<script src="../../../images/20191226wxShare.js"></script>
+<!--微信分享图功能-->
+<!--公共尾结束-->
+</div>
+</div>
+
+
+
+<div style="display:none"><script type="text/javascript">document.write(unescape("%3Cscript src='//stat.www.gov.cn/webdig.js?z=1' type='text/javascript'%3E%3C/script%3E"));</script><script type="text/javascript">wd_paramtracker("_wdxid=000000000000000000000000000000000000000000")</script></div></body>
+
+</html>
+<script src="../../../images/trs_jquery.date_input.pack.js"></script>
+<script>
+
+  if ($("#v_player, .player_video").length > 0) {
+    $('.shuzi').add();
+  }
+  else {
+    $('.shuzi').remove();
+  }
+
+</script>
+<script src="../../../images/trs_article_pub_gjgzk.js"></script>
+<script src="../../../images/trs_public.js"></script>
+<script src="../../../images/trs_search_option.js"></script>
+<script src="../../../images/trs_qrcode.js" type="text/javascript"></script>
+<script src="../../../images/trs_jquery.qrcode.js" type="text/javascript"></script>
+<!--20180408修改js去掉新华微博-->
+<script src="../../../images/trs_share.js"></script>
+
+<script src="../../../images/trs_forPrintJS.js?t=20230526233531"></script>

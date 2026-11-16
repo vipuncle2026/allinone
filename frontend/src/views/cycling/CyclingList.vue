@@ -166,6 +166,16 @@
       <a-space>
         <a-button :loading="syncSaving" @click="saveSyncAccount">保存账号</a-button>
         <a-button type="primary" :loading="syncRunning" @click="startSync">立即同步</a-button>
+        <a-popconfirm
+          v-if="syncSettings.configured"
+          title="整理重复记录"
+          description="把自动同步产生的记录与同一次骑行的手动导入记录合并（保留手动那条及其标题），不会删除你的手动数据。"
+          ok-text="开始整理"
+          cancel-text="取消"
+          @confirm="runDedupe"
+        >
+          <a-button :loading="dedupeRunning">整理重复</a-button>
+        </a-popconfirm>
         <a-popconfirm v-if="syncSettings.configured" title="清除已保存的账号？" @confirm="clearSyncAccount">
           <a-button danger ghost>清除账号</a-button>
         </a-popconfirm>
@@ -182,7 +192,8 @@
             已处理 {{ syncStatus.done }} / {{ syncStatus.total }}
           </div>
           <div>
-            ✅ 新增 {{ syncStatus.imported }} · ⏭ 跳过 {{ syncStatus.skipped }} · ❌ 失败 {{ syncStatus.failed }}
+            ✅ 新增 {{ syncStatus.imported }} · 🔗 合并 {{ syncStatus.merged || 0 }} ·
+            ⏭ 跳过 {{ syncStatus.skipped }} · ❌ 失败 {{ syncStatus.failed }}
           </div>
           <div v-if="syncStatus.message" :style="{ color: syncStatus.phase === 'error' ? '#cf1322' : '#888' }">
             {{ syncStatus.message }}
@@ -385,8 +396,9 @@ const syncModalOpen = ref(false)
 const syncSaving = ref(false)
 const syncSettings = ref({ configured: false, username: '', last_sync_at: null, last_result: {} })
 const syncForm = ref({ username: '', password: '' })
-const syncStatus = ref({ running: false, phase: 'idle', total: 0, done: 0, imported: 0, skipped: 0, failed: 0, message: '' })
+const syncStatus = ref({ running: false, phase: 'idle', total: 0, done: 0, imported: 0, merged: 0, skipped: 0, failed: 0, message: '' })
 const syncRunning = computed(() => !!syncStatus.value.running)
+const dedupeRunning = ref(false)
 let syncTimer = null
 
 const syncPercent = computed(() => {
@@ -478,6 +490,23 @@ async function startSync() {
     startPolling()
   } catch (e) {
     message.error(e.response?.data?.detail || '启动同步失败')
+  }
+}
+
+async function runDedupe() {
+  dedupeRunning.value = true
+  try {
+    const { data } = await cyclingApi.dedupeSync()
+    if (data.merged > 0) {
+      message.success(`已合并 ${data.merged} 条重复记录（保留了手动导入的条目）`)
+      loadList()
+    } else {
+      message.info('没有发现重复记录')
+    }
+  } catch (e) {
+    message.error(e.response?.data?.detail || '整理失败')
+  } finally {
+    dedupeRunning.value = false
   }
 }
 

@@ -193,6 +193,11 @@ export const cyclingApi = {
     return http.get('/cycling/sync/status')
   },
 
+  /** 整理历史重复记录 */
+  dedupeSync() {
+    return http.post('/cycling/sync/dedupe')
+  },
+
   /** 车辆列表 */
   listBikes() {
     return http.get('/cycling/bikes')

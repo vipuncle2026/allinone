@@ -143,19 +143,9 @@ async def upload_activity_file(request: Request, file: UploadFile = File(...)):
 
 
 def _suggest_title(data: dict) -> str:
-    """根据解析数据自动生成标题建议"""
-    dist = data.get("distance_km", 0)
-    ts = data.get("start_time")
-    prefix = "骑行"
-    if dist:
-        prefix = f"{dist}km 骑行"
-    if ts:
-        try:
-            dt = datetime.fromisoformat(ts)
-            return f"{dt.strftime('%m月%d日')} {prefix}"
-        except Exception:
-            pass
-    return prefix
+    """统一命名：MM月DD日 XX.XXkm 骑行（与 iGPSPORT 自动同步共用）"""
+    from services.upload_utils import suggest_title
+    return suggest_title(data)
 
 
 # ─── 活动 CRUD ────────────────────────────────────────────────
@@ -685,6 +675,7 @@ def get_sync_settings(db: Session = Depends(get_db)):
         "last_sync_at": state.get("last_sync_at"),
         "last_result": {
             "imported": state.get("imported", 0),
+            "merged": state.get("merged", 0),
             "skipped": state.get("skipped", 0),
             "failed": state.get("failed", 0),
             "error": state.get("error", ""),
@@ -733,3 +724,17 @@ async def run_sync_now():
 def sync_status():
     """同步进度快照"""
     return igp.snapshot_state()
+
+
+@router.post("/sync/dedupe")
+def dedupe_activities(db: Session = Depends(get_db)):
+    """整理历史重复：自动同步记录若与手动导入的是同一次骑行，
+    则删除自动记录并把 rideId 认领到手动记录上（避免下次同步再次导入）"""
+    if igp.SYNC_STATE["running"]:
+        raise HTTPException(409, "同步进行中，请稍后再整理")
+    result = igp.dedupe_existing(db)
+    return {
+        "ok": True,
+        **result,
+        "message": f"已合并 {result['merged']} 条重复记录",
+    }

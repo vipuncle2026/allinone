@@ -1,0 +1,77 @@
+<html lang="en">
+
+<head>
+    <title>本外币整存整取定期储蓄 -- 兴业银行官方网站</title>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" comtent="ie=edge">
+<meta content="本外币整存整取定期储蓄"
+    name="keywords" />
+<meta content="本外币整存整取定期储蓄"
+    name="description" />
+<link rel="stylesheet" href="/cn/resources2023/css/2023/common.css">
+<link rel="stylesheet" href="/cn/resources2023/accessibility/accessibility.css">
+<link rel="stylesheet" href="/cn/resources2023/css/2023/head.css">
+<link rel="stylesheet" href="/cn/resources2023/css/2023/footer.css">
+
+<script src="/cn/resources2023/js/2023/jquery.min.js"></script>
+<script src="/cn/resources2023/js/2023/jquery.slides.js"></script>
+<script src="/cn/resources2023/js/2023/sensorsdata.min.js"></script>
+<script src="/cn/resources2023/js/2023/utils.js"></script>
+<script src="/cn/resources2023/js/2023/shen.js"></script>
+<script src="/cn/resources2023/js/2023/head.js"></script>
+<script src="/cn/resources2023/accessibility/accessibility.js"></script>
+<script src="/cn/resources2023/js/2023/translator.js"></script>
+<script src="/cn/CibHeader-2023.js"></script>
+<script src="/cn/CibFooter-2023.js"></script>
+
+<link rel="stylesheet" href="/cn/resources2023/css/2023/mediaelementplayer.min.css">
+    <link rel="stylesheet" href="/cn/resources2023/css/2023/listpage.css">
+    <script src="/cn/resources2023/js/2023/mediaelementplayer.min.js"></script>
+    <script src="/cn/resources2023/js/2023/content-page.js"></script>
+    
+</head>
+
+<body>
+    <div class="wrap padding-bottom-30" infoArea="1">
+        <div class="wrap-container">
+            <div class="left" id="leftmenu"></div>
+<script src="/cn/personal/leftmenu.js" type="text/javascript" deffer=true></script>
+<div class="right">
+    <div class="bread-crumb">
+        <div class="bread-crumb-item"><a href="/cn/index.html">首页</a></div><div class="bread-crumb-item"><a href="/cn/personal/index.html">个人金融</a></div><div class="bread-crumb-item"><a href="/cn/personal/depositServer/index.html">存款服务</a></div><div class="bread-crumb-item last"><a href="/cn/personal/depositServer/deposits/index.html">个人存款产品</a></div>
+</div>
+    <div class="content-container">
+        <h3>本外币整存整取定期储蓄</h3>
+        <p><a href="#1">产品介绍</a>&nbsp;&nbsp;&nbsp;<a href="#2">产品特色</a>&nbsp;&nbsp;&nbsp;<a href="#3">适宜客户群</a>&nbsp;&nbsp;&nbsp;<a href="#4">服务渠道</a>&nbsp;&nbsp;&nbsp;<a href="#5">办理指南</a></p>
+<p><a name="1" id="1"></a><strong>【产品介绍】 </strong></p>
+<p>本外币整存整取定期储蓄是指在存款时约定存款期限，整笔存入，到期整笔支取本金利息的一种储蓄产品。</p>
+<p><a name="2" id="2"></a><strong>【产品特色】 </strong></p>
+<p>1、收益较活期高：整存整取储蓄利率高于活期储蓄利率。</p>
+<p>2、支持全辖通兑：凭密码支取的整存整取定期储蓄，支持本行系统内同城及异地的通兑。</p>
+<p>3、自动转存省心省力：客户可在存款时约定转存期限，存款到期后本行系统自动将本息按约定续存。</p>
+<p>4、质押贷款融通资金：如果整存整取定期存款临近到期，但急需资金应急，您可向本行申请质押贷款融通资金。</p>
+<p><a name="3" id="3"></a><strong>【适宜客户群】 </strong></p>
+<p>整存整取定期储蓄适合偏好稳健传统理财方式的客户，是家庭投资组合的必备选项。</p>
+<p><a name="4" id="4"></a><strong>【服务渠道】 </strong></p>
+<p>1、开户服务：本行营业网点、网上银行、电话银行、手机银行、智能柜台。</p>
+<p>2、现金存取服务：本行网点柜台。</p>
+<p>3、定活互转服务：本行网点柜台、网上银行、电话银行、手机银行、智能柜台。</p>
+<p>4、查询服务：本行网点柜面、网上银行、电话银行、手机银行、智能柜台。</p>
+<p><a name="5" id="5"></a><strong>【办理指南】 </strong></p>
+<p>1、币种及起存金额</p>
+<p>人民币50元、美元10元、欧元10元、英镑50元、港币100元、日元2000元、澳元10元、加拿大元10元、瑞士法郎10元、新加坡元20元 、新西兰元10元。</p>
+<p>2、存款期限</p>
+<p>人民币整存整取储蓄存款的存期为三个月、六个月、一年、两年、三年、五年。</p>
+<p>外币整存整取储蓄存款的存期为一个月、三个月、六个月、一年、两年。</p>
+<p>3、通兑规则</p>
+<p>对于凭密码支取的整存整取定期储蓄存款可在本行任一网点办理取款业务；对于非凭密码支取的整存整取定期储蓄存款须回原开户网点办理。</p>
+<p>4、提前部分支取规则</p>
+<p>以个人存单和理财卡为凭证的整存整取定期储蓄，在存期内支持不限次数的部分提前支取；以定期一本通为凭证的整存整取定期储蓄，在存期内只允许部分提前支取一次。</p>
+<p>5、业务申请</p>
+<p>您可持本人有效身份证件前往本行任一网点开立理财卡、整存整取定期存单或定期一本通，如代办，还需同时出示代办人有效身份证件。</p></div>
+</div></div>
+    </div>
+</body>
+
+</html>

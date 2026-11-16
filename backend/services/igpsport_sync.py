@@ -44,6 +44,7 @@ SYNC_STATE = {
     "done": 0,
     "imported": 0,
     "skipped": 0,
+    "merged": 0,
     "failed": 0,
     "message": "",
     "started_at": None,
@@ -213,6 +214,64 @@ def _already_imported(db: Session, ride_id) -> bool:
     )
 
 
+# 判定「同一次骑行」的容差
+TWIN_DIST_TOL = 0.05   # km
+TWIN_DUR_TOL = 5       # 秒
+
+
+def _find_manual_twin(db: Session, date_val, distance_km, duration_sec, exclude_id=None):
+    """查找同一活动的手动导入记录（无 external_id）。
+
+    手动导入的记录没有 rideId，若只按 rideId 去重会与自动同步重复；
+    这里按「同日期 + 距离接近 + 时长接近」判定为同一次骑行。
+    """
+    if not distance_km:
+        return None
+    rows = (
+        db.query(CyclingActivity)
+        .filter(
+            CyclingActivity.date == date_val,
+            CyclingActivity.external_id.is_(None),
+        )
+        .all()
+    )
+    best, best_diff = None, 1e9
+    for row in rows:
+        if exclude_id is not None and row.id == exclude_id:
+            continue
+        if row.distance_km is None:
+            continue
+        diff = abs(row.distance_km - distance_km)
+        if diff > TWIN_DIST_TOL:
+            continue
+        if duration_sec and row.duration_sec and abs(row.duration_sec - duration_sec) > TWIN_DUR_TOL:
+            continue
+        if diff < best_diff:
+            best, best_diff = row, diff
+    return best
+
+
+def _adopt(db: Session, target: CyclingActivity, ride_id, parsed: dict) -> CyclingActivity:
+    """把手动记录认领为 iGPSPORT 记录：打上 rideId，仅补齐原记录为空的字段"""
+    target.external_source = "igpsport"
+    target.external_id = str(ride_id)
+    for field in (
+        "elevation_gain", "elevation_loss", "max_elevation", "min_elevation",
+        "avg_speed_kmh", "max_speed_kmh", "avg_power_w", "max_power_w",
+        "normalized_power", "tss", "avg_heart_rate", "max_heart_rate",
+        "avg_cadence", "max_cadence", "calories",
+    ):
+        if getattr(target, field, None) is None and parsed.get(field) is not None:
+            setattr(target, field, parsed.get(field))
+    if not target.track_json and parsed.get("track_json"):
+        target.track_json = parsed.get("track_json")
+        if not target.file_path:
+            target.file_type = "fit"
+    db.commit()
+    db.refresh(target)
+    return target
+
+
 def _to_dt(value):
     """把 ISO 字符串（parse_fit 返回 str）转成 datetime，供 SQLite DateTime 列使用"""
     if value is None or isinstance(value, datetime):
@@ -230,14 +289,30 @@ def _to_dt(value):
     return None
 
 
-def _insert_activity(db: Session, ride_id, item: dict, parsed: dict, rel_path: str) -> CyclingActivity:
+def _suggest_title(parsed: dict) -> str:
+    """与手动导入一致的命名：MM月DD日 XX.XXkm 骑行"""
+    from services.upload_utils import suggest_title
+    return suggest_title(parsed)
+
+
+def _upsert_activity(db: Session, ride_id, item: dict, parsed: dict, rel_path: str):
+    """写入活动：若已存在同一活动的手动记录则认领它，否则新建。
+
+    返回 (activity, adopted) —— adopted=True 表示合并到已有手动记录。
+    """
     start_dt = _to_dt(parsed.get("start_time"))
     end_dt = _to_dt(parsed.get("end_time"))
     date_val = start_dt.date() if start_dt else datetime.now().date()
 
-    title = (item.get("title") or "").strip()
-    if not title:
-        title = f"{date_val.strftime('%m月%d日')} 骑行"
+    # 同名活动的手动记录：认领而不是重复插入
+    twin = _find_manual_twin(db, date_val, parsed.get("distance_km"), parsed.get("duration_sec"))
+    if twin:
+        return _adopt(db, twin, ride_id, parsed), True
+
+    # 命名与手动导入统一（不再使用 iGPSPORT 的「户外骑行」等标题）
+    title = _suggest_title(parsed)
+    if not title or title == "骑行":
+        title = (item.get("title") or "").strip() or f"{date_val.strftime('%m月%d日')} 骑行"
 
     act = CyclingActivity(
         title=title[:200],
@@ -270,7 +345,35 @@ def _insert_activity(db: Session, ride_id, item: dict, parsed: dict, rel_path: s
     db.add(act)
     db.commit()
     db.refresh(act)
-    return act
+    return act, False
+
+
+def dedupe_existing(db: Session) -> dict:
+    """整理历史重复：自动同步产生的记录若与手动导入的是同一活动，
+    则把 rideId 认领到手动记录上并删除自动记录（含其 FIT 文件）。"""
+    from services.upload_utils import safe_remove_upload
+
+    autos = (
+        db.query(CyclingActivity)
+        .filter(CyclingActivity.external_source == "igpsport")
+        .all()
+    )
+    merged = kept = 0
+    for a in autos:
+        twin = _find_manual_twin(
+            db, a.date, a.distance_km, a.duration_sec, exclude_id=a.id
+        )
+        if not twin:
+            kept += 1
+            continue
+        _adopt(db, twin, a.external_id, {})
+        file_path = a.file_path
+        db.delete(a)
+        db.commit()
+        if file_path:
+            safe_remove_upload(file_path)
+        merged += 1
+    return {"merged": merged, "kept": kept}
 
 
 # ── 同步主流程 ────────────────────────────────────────────────
@@ -283,6 +386,7 @@ def _reset_state():
         done=0,
         imported=0,
         skipped=0,
+        merged=0,
         failed=0,
         message="正在登录 iGPSPORT…",
         started_at=datetime.now().isoformat(timespec="seconds"),
@@ -367,10 +471,20 @@ async def run_sync(db: Session, page_size: int = 20, delay: float = 0.4) -> dict
                             continue
 
                         rel_path = os.path.join("cycling", filename)
-                        _insert_activity(db, ride_id, item, parsed, rel_path)
-                        SYNC_STATE["imported"] += 1
+                        act, adopted = _upsert_activity(db, ride_id, item, parsed, rel_path)
+                        if adopted:
+                            # 已合并到手动记录：本次下载的 FIT 不再需要
+                            try:
+                                os.remove(abs_path)
+                            except Exception:
+                                pass
+                            abs_path = None
+                            SYNC_STATE["merged"] += 1
+                            SYNC_STATE["message"] = f"合并到已有记录 {SYNC_STATE['merged']} 条"
+                        else:
+                            SYNC_STATE["imported"] += 1
+                            SYNC_STATE["message"] = f"已导入 {SYNC_STATE['imported']} 条"
                         SYNC_STATE["done"] += 1
-                        SYNC_STATE["message"] = f"已导入 {SYNC_STATE['imported']} 条"
                     except Exception as e:
                         # 单条失败必须回滚，否则 session 进入 rollback 状态会导致后续全部失败
                         try:
@@ -398,11 +512,12 @@ async def run_sync(db: Session, page_size: int = 20, delay: float = 0.4) -> dict
 
         SYNC_STATE["phase"] = "done"
         SYNC_STATE["message"] = (
-            f"完成：新增 {SYNC_STATE['imported']}，跳过 {SYNC_STATE['skipped']}，"
-            f"失败 {SYNC_STATE['failed']}"
+            f"完成：新增 {SYNC_STATE['imported']}，合并 {SYNC_STATE['merged']}，"
+            f"跳过 {SYNC_STATE['skipped']}，失败 {SYNC_STATE['failed']}"
         )
         result.update(
             imported=SYNC_STATE["imported"],
+            merged=SYNC_STATE["merged"],
             skipped=SYNC_STATE["skipped"],
             failed=SYNC_STATE["failed"],
         )
@@ -411,6 +526,7 @@ async def run_sync(db: Session, page_size: int = 20, delay: float = 0.4) -> dict
             {
                 "last_sync_at": datetime.now().isoformat(timespec="seconds"),
                 "imported": SYNC_STATE["imported"],
+                "merged": SYNC_STATE["merged"],
                 "skipped": SYNC_STATE["skipped"],
                 "failed": SYNC_STATE["failed"],
                 "error": "",
