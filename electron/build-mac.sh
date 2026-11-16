@@ -3,8 +3,8 @@ set -e
 
 # ── All-in-One 桌面端一键构建脚本 ───────────────────────
 # 用法: bash build-mac.sh [后缀]
-#   无参数      -> AllInOne-1.0.0-arm64.dmg     (纯本地独立模式)
-#   带后缀      -> AllInOne-1.0.0-arm64-<后缀>.dmg (如 sync = 支持连接 NAS 同步)
+#   无参数      -> AllInOne-<版本>-arm64.dmg
+#   带后缀      -> AllInOne-<版本>-arm64-<后缀>.dmg
 #   环境变量 KEEP_OLD=1 时不覆盖同名旧包，自动追加时间戳
 # 产出: electron/release/*.dmg
 
@@ -13,6 +13,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 BACKEND_DIR="$PROJECT_DIR/backend"
 FRONTEND_DIR="$PROJECT_DIR/frontend"
 ELECTRON_DIR="$SCRIPT_DIR"
+APP_VERSION="$(node -p "require('$ELECTRON_DIR/package.json').version")"
 
 # ── 环境修复 ──
 export NODE_OPTIONS=""
@@ -101,10 +102,10 @@ echo "[5/5] hdiutil 打包 DMG..."
 DMG_SUFFIX="$1"
 VOLUME_NAME="AllInOne"
 if [ -n "$DMG_SUFFIX" ]; then
-  DMG_NAME="AllInOne-1.0.0-arm64-${DMG_SUFFIX}.dmg"
+  DMG_NAME="AllInOne-${APP_VERSION}-arm64-${DMG_SUFFIX}.dmg"
   VOLUME_NAME="AllInOne-${DMG_SUFFIX}"
 else
-  DMG_NAME="AllInOne-1.0.0-arm64.dmg"
+  DMG_NAME="AllInOne-${APP_VERSION}-arm64.dmg"
 fi
 
 DMG_PATH="$ELECTRON_DIR/release/$DMG_NAME"

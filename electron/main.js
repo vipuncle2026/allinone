@@ -19,6 +19,7 @@ let actualPort = API_PORT
 let config = {}
 let allowQuit = false
 let stoppingApi = null
+let relaunching = false
 
 const hasSingleInstanceLock = app.requestSingleInstanceLock()
 if (!hasSingleInstanceLock) {
@@ -499,9 +500,14 @@ function openSettingsWindow() {
 }
 
 /** 重启应用（切换模式后生效） */
-function relaunchApp() {
+async function relaunchApp() {
+  if (relaunching) return
+  relaunching = true
+  tray = null
+  await stopApiProcess()
+  allowQuit = true
   app.relaunch()
-  quitApp()
+  app.quit()
 }
 
 // ── 托盘 ──────────────────────────────────────────────────────────
