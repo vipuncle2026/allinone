@@ -120,6 +120,28 @@ async function checkServer(url, timeout = 3000) {
   return r.ok
 }
 
+/** 检查根路径是否返回 HTML 页面（区分前端 nginx 与纯后端 API） */
+function rootIsHtml(url, timeout = 3000) {
+  return new Promise((resolve) => {
+    let target
+    try {
+      target = new URL('/', url)
+    } catch {
+      return resolve(false)
+    }
+    const lib = target.protocol === 'https:' ? https : http
+    const opts = { timeout }
+    if (target.protocol === 'https:') opts.rejectUnauthorized = false
+    const req = lib.get(target, opts, (res) => {
+      const ct = String(res.headers['content-type'] || '')
+      res.resume()
+      resolve(ct.includes('text/html'))
+    })
+    req.on('error', () => resolve(false))
+    req.on('timeout', () => { req.destroy(); resolve(false) })
+  })
+}
+
 // ── 工具函数 ──────────────────────────────────────────────────────
 
 /** 获取应用数据目录（~/Library/Application Support/AllInOne/） */
@@ -279,11 +301,12 @@ async function loadContent(win) {
     const url = config.serverUrl
     console.log(`[APP] 远程模式，连接 ${url}`)
     const ok = await checkServer(url)
-    if (ok) {
-      win.loadURL(url)
-    } else {
-      showConnectError(url, '无法连接到服务器')
+    if (!ok) return showConnectError(url, '无法连接到服务器')
+    // 探活通过但根路径不是 HTML：说明填的是后端 API 端口，页面无法显示
+    if (!(await rootIsHtml(url))) {
+      return showConnectError(url, '该地址是后端 API 服务，页面无法显示。请填写 frontend/nginx 服务映射的端口')
     }
+    win.loadURL(url)
     return
   }
 
@@ -342,6 +365,43 @@ function createWindow() {
     console.warn(`[APP] 加载失败 ${validatedURL}: ${errorDesc} (${errorCode})`)
     showConnectError(validatedURL, errorDesc)
   })
+
+  // 渲染进程日志 / 截图（排障用：AL_DEBUG=1 启动）
+  if (process.env.AL_DEBUG) {
+    mainWindow.webContents.on('console-message', (_e, level, msg, line, src) => {
+      console.log(`[RENDERER:${level}] ${msg}  (${src}:${line})`)
+    })
+    // 记录所有 API 请求结果（含失败）
+    mainWindow.webContents.session.webRequest.onCompleted({ urls: ['*://*/*api/*', '*://*/*health*'] }, (d) => {
+      console.log(`[NET] ${d.statusCode} ${d.method} ${d.url}`)
+    })
+    mainWindow.webContents.session.webRequest.onErrorOccurred({ urls: ['*://*/*api/*'] }, (d) => {
+      console.log(`[NET-ERR] ${d.error} ${d.method} ${d.url}`)
+    })
+    // 排障：AL_TOKEN 提供有效 token 时自动注入 localStorage（绕过登录页）
+    let injected = false
+    mainWindow.webContents.on('did-finish-load', async () => {
+      const tk = process.env.AL_TOKEN
+      if (tk && !injected && !mainWindow.webContents.getURL().startsWith('file://')) {
+        injected = true
+        await mainWindow.webContents.executeJavaScript(
+          `localStorage.setItem('token','${tk}'); localStorage.setItem('user','{"id":1,"username":"admin"}'); location.href='/dashboard'`
+        )
+        console.log('[DEBUG] 已注入 token 并跳转 /dashboard')
+      }
+    })
+    let shots = 0
+    const timer = setInterval(async () => {
+      if (mainWindow && !mainWindow.isDestroyed() && shots < 5) {
+        shots++
+        try {
+          const img = await mainWindow.webContents.capturePage()
+          fs.writeFileSync(`/tmp/al-page-${shots}.png`, img.toPNG())
+          console.log(`[DEBUG] 截图${shots}: ${mainWindow.webContents.getURL()}`)
+        } catch {}
+      } else clearInterval(timer)
+    }, 5000)
+  }
 
   // 关闭窗口 = 隐藏到托盘（而非退出）
   mainWindow.on('close', (e) => {
@@ -561,14 +621,22 @@ ipcMain.handle('test-connection', async (_e, raw) => {
   const url = normalizeUrl(raw)
   if (!url) return { ok: false, message: '请输入服务器地址' }
   const r = await detectServer(url, 6000)
-  if (r.ok) {
-    return { ok: true, message: `连接成功：${describeUrl(url)}（${r.path}）`, url }
+  if (!r.ok) {
+    return {
+      ok: false,
+      url,
+      message: `连不上 ${describeUrl(url)}，请确认端口、容器是否运行、以及防火墙`,
+    }
   }
-  return {
-    ok: false,
-    url,
-    message: `连不上 ${describeUrl(url)}，请确认端口、容器是否运行、以及防火墙`,
+  // 探活通过但根路径不是 HTML → 大概率填了后端 API 端口
+  if (!(await rootIsHtml(url, 6000))) {
+    return {
+      ok: false,
+      url,
+      message: '地址能连通，但这是后端 API 服务，页面无法显示。请填写 frontend/nginx 容器映射的端口',
+    }
   }
+  return { ok: true, message: `连接成功：${describeUrl(url)}（${r.path}）`, url }
 })
 
 // 连接失败页：重试
