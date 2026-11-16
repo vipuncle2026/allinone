@@ -57,14 +57,45 @@ async def lifespan(app: FastAPI):
     snapshot_task = asyncio.create_task(_daily_snapshot_task())
     # 启动 Token 定时清理任务（每 6 小时清一次过期 token）
     cleanup_task = asyncio.create_task(_token_cleanup_task())
+    # 启动 iGPSPORT 自动同步任务（每 6 小时）
+    igpsport_task = asyncio.create_task(_igpsport_sync_task())
     yield
     snapshot_task.cancel()
     cleanup_task.cancel()
-    for t in (snapshot_task, cleanup_task):
+    igpsport_task.cancel()
+    for t in (snapshot_task, cleanup_task, igpsport_task):
         try:
             await t
         except asyncio.CancelledError:
             pass
+
+
+async def _igpsport_sync_task():
+    """每 6 小时自动同步一次 iGPSPORT 活动（未配置账号时静默跳过）"""
+    INTERVAL = 6 * 3600
+    # 启动后先等 2 分钟，避开启动高峰
+    await asyncio.sleep(120)
+    while True:
+        try:
+            from database import get_session_factory
+            from services import igpsport_sync as igp
+
+            db = get_session_factory()()
+            try:
+                if igp.load_credentials(db) and not igp.SYNC_STATE["running"]:
+                    print(f"[IGPSPORT] 开始自动同步 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                    result = await igp.run_sync(db)
+                    print(f"[IGPSPORT] 同步结果: {result}")
+            finally:
+                db.close()
+        except asyncio.CancelledError:
+            raise
+        except Exception as e:
+            print(f"[IGPSPORT] 自动同步异常: {e}")
+        try:
+            await asyncio.sleep(INTERVAL)
+        except asyncio.CancelledError:
+            raise
 
 
 async def _token_cleanup_task():

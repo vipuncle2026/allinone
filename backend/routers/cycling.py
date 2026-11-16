@@ -658,3 +658,78 @@ def export_csv(db: Session = Depends(get_db)):
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+
+# ─── iGPSPORT 云端自动同步 ────────────────────────────────────
+
+from services import igpsport_sync as igp  # noqa: E402
+import asyncio  # noqa: E402
+from database import get_session_factory  # noqa: E402
+
+_sync_task: Optional[asyncio.Task] = None
+
+
+class SyncCredentials(BaseModel):
+    username: str
+    password: str
+
+
+@router.get("/sync/settings")
+def get_sync_settings(db: Session = Depends(get_db)):
+    """查询同步配置与最近一次同步结果"""
+    creds = igp.load_credentials(db)
+    state = igp.load_state(db)
+    return {
+        "configured": bool(creds),
+        "username": creds["username"] if creds else "",
+        "last_sync_at": state.get("last_sync_at"),
+        "last_result": {
+            "imported": state.get("imported", 0),
+            "skipped": state.get("skipped", 0),
+            "failed": state.get("failed", 0),
+            "error": state.get("error", ""),
+        },
+        "running": igp.SYNC_STATE["running"],
+    }
+
+
+@router.put("/sync/settings")
+def save_sync_settings(payload: SyncCredentials, db: Session = Depends(get_db)):
+    """保存 iGPSPORT 账号（密码加密存储）"""
+    username = (payload.username or "").strip()
+    password = (payload.password or "").strip()
+    if not username or not password:
+        raise HTTPException(400, "账号和密码不能为空")
+    igp.save_credentials(db, username, password)
+    return {"ok": True, "message": "已保存"}
+
+
+@router.delete("/sync/settings")
+def delete_sync_settings(db: Session = Depends(get_db)):
+    """清除已保存的账号"""
+    igp.clear_credentials(db)
+    return {"ok": True}
+
+
+@router.post("/sync/run")
+async def run_sync_now():
+    """手动触发一次同步（后台执行，进度用 /sync/status 轮询）"""
+    global _sync_task
+    if igp.SYNC_STATE["running"]:
+        return {"ok": False, "message": "同步正在进行中，请稍候"}
+
+    async def _job():
+        db = get_session_factory()()
+        try:
+            await igp.run_sync(db)
+        finally:
+            db.close()
+
+    _sync_task = asyncio.create_task(_job())
+    return {"ok": True, "message": "已开始同步"}
+
+
+@router.get("/sync/status")
+def sync_status():
+    """同步进度快照"""
+    return igp.snapshot_state()

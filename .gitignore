@@ -83,3 +83,7 @@ Icon?
 *.zip
 frontend.log
 .allinone-*.pid
+
+# iGPSPORT 凭据加密密钥（禁止提交）
+.igpsport.key
+*.igpsport.key

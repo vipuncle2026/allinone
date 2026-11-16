@@ -93,6 +93,10 @@ class CyclingActivity(Base):
     file_path = Column(String(500))
     track_json = Column(Text)         # 精简轨迹点 JSON（地图渲染用）
 
+    # 外部来源去重（如 iGPSPORT 的 rideId）
+    external_source = Column(String(20), index=True)   # igpsport / garmin / ...
+    external_id = Column(String(64), index=True)
+
     # 关联车辆
     bike_id = Column(Integer, ForeignKey("bikes.id"), nullable=True)
     bike = relationship("Bike", back_populates="activities")

@@ -18,6 +18,9 @@ APP_VERSION="$(node -p "require('$ELECTRON_DIR/package.json').version")"
 # ── 环境修复 ──
 export NODE_OPTIONS=""
 export ELECTRON_MIRROR="${ELECTRON_MIRROR:-https://npmmirror.com/mirrors/electron/}"
+# PyInstaller 默认缓存在 ~/Library/Application Support/pyinstaller，重建时需删除旧缓存，
+# 在受限环境下会失败；改用本次独立的临时缓存目录。
+export PYINSTALLER_CONFIG_DIR="${PYINSTALLER_CONFIG_DIR:-/tmp/pyinstaller-cache-$$}"
 
 echo "========================================="
 echo "  All-in-One 桌面端 macOS 构建"

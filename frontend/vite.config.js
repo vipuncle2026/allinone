@@ -5,7 +5,9 @@ import { fileURLToPath, URL } from 'node:url'
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [vue()],
-  base: './',
+  // 绝对路径：深链接/刷新任意页面（如 /sports/cycling）都能正确加载 /assets/*
+  // 相对路径 './' 会让 /sports/cycling 去请求 /sports/assets/*，被 SPA 兜底成 HTML 导致白屏
+  base: '/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))

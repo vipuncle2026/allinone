@@ -440,9 +440,18 @@ function createWindow() {
       if (tk && !injected && !mainWindow.webContents.getURL().startsWith('file://')) {
         injected = true
         await mainWindow.webContents.executeJavaScript(
-          `localStorage.setItem('token','${tk}'); localStorage.setItem('user','{"id":1,"username":"admin"}'); location.href='/dashboard'`
+          `localStorage.setItem('token','${tk}'); localStorage.setItem('user','{"id":1,"username":"admin"}'); location.href='${process.env.AL_ROUTE || '/dashboard'}'`
         )
         console.log('[DEBUG] 已注入 token 并跳转 /dashboard')
+      }
+      // 排障：AL_JS 可注入任意脚本（用于自动点击等 UI 验证）
+      if (process.env.AL_JS) {
+        try {
+          const r = await mainWindow.webContents.executeJavaScript(process.env.AL_JS)
+          console.log('[DEBUG] AL_JS 执行结果:', r)
+        } catch (e) {
+          console.log('[DEBUG] AL_JS 失败:', e.message)
+        }
       }
     })
     let shots = 0

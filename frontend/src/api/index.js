@@ -167,6 +167,32 @@ export const cyclingApi = {
     return http.get('/cycling/activities/achievements')
   },
 
+  // ── iGPSPORT 云端自动同步 ──
+  /** 同步配置与最近结果 */
+  getSyncSettings() {
+    return http.get('/cycling/sync/settings')
+  },
+
+  /** 保存 iGPSPORT 账号密码 */
+  saveSyncSettings(data) {
+    return http.put('/cycling/sync/settings', data)
+  },
+
+  /** 清除已保存账号 */
+  clearSyncSettings() {
+    return http.delete('/cycling/sync/settings')
+  },
+
+  /** 立即同步 */
+  runSync() {
+    return http.post('/cycling/sync/run')
+  },
+
+  /** 同步进度 */
+  getSyncStatus() {
+    return http.get('/cycling/sync/status')
+  },
+
   /** 车辆列表 */
   listBikes() {
     return http.get('/cycling/bikes')

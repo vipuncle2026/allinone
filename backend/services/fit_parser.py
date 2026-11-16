@@ -91,6 +91,8 @@ def parse_fit(file_path: str) -> dict:
     compressed = _compress_track(track_points, max_points=600)
 
     return {
+        "sport": str(session_data.get("sport") or ""),
+        "sub_sport": str(session_data.get("sub_sport") or ""),
         "distance_km": round(distance_m / 1000, 2),
         "duration_sec": duration_sec,
         "elevation_gain": round(elevation_gain, 1) if elevation_gain else None,

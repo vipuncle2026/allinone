@@ -20,6 +20,12 @@
         <a-select-option v-for="b in bikes" :key="b.id" :value="b.id">{{ b.name }}</a-select-option>
       </a-select>
       <div style="flex: 1"></div>
+      <a-tooltip :title="syncTooltip">
+        <a-button @click="openSync">
+          ☁️ 自动同步
+          <a-badge v-if="syncRunning" status="processing" style="margin-left: 6px" />
+        </a-button>
+      </a-tooltip>
       <a-dropdown>
         <template #overlay>
           <a-menu @click="onExportMenu">
@@ -121,6 +127,72 @@
         </a-row>
         <a-form-item label="备注"><a-textarea v-model:value="editForm.notes" :rows="3" /></a-form-item>
       </a-form>
+    </a-modal>
+
+    <!-- iGPSPORT 自动同步 -->
+    <a-modal v-model:open="syncModalOpen" title="iGPSPORT 自动同步" width="560px" :footer="null">
+      <a-alert
+        type="info"
+        show-icon
+        style="margin-bottom: 16px"
+        message="从 iGPSPORT 云端拉取骑行活动，与码表上传的数据等价"
+        description="填一次账号密码即可，之后每 6 小时自动同步一次；按活动 ID 去重，重复执行不会产生重复记录。"
+      />
+
+      <div class="sync-state-row">
+        <span>当前状态：</span>
+        <a-tag v-if="syncSettings.configured" color="green">已配置 {{ syncSettings.username }}</a-tag>
+        <a-tag v-else color="default">未配置</a-tag>
+        <span v-if="syncSettings.configured && syncSettings.last_sync_at" style="margin-left: 8px; color: #888; font-size: 12px">
+          上次同步 {{ formatTime(syncSettings.last_sync_at) }}
+        </span>
+      </div>
+
+      <a-form layout="vertical" style="margin-top: 12px">
+        <a-row :gutter="12">
+          <a-col :span="12">
+            <a-form-item label="iGPSPORT 账号" required>
+              <a-input v-model:value="syncForm.username" placeholder="手机号 / 邮箱" autocomplete="off" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="12">
+            <a-form-item label="密码" required>
+              <a-input-password v-model:value="syncForm.password" placeholder="iGPSPORT 登录密码" autocomplete="off" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+      </a-form>
+
+      <a-space>
+        <a-button :loading="syncSaving" @click="saveSyncAccount">保存账号</a-button>
+        <a-button type="primary" :loading="syncRunning" @click="startSync">立即同步</a-button>
+        <a-popconfirm v-if="syncSettings.configured" title="清除已保存的账号？" @confirm="clearSyncAccount">
+          <a-button danger ghost>清除账号</a-button>
+        </a-popconfirm>
+      </a-space>
+
+      <div v-if="syncStatus.phase !== 'idle'" style="margin-top: 16px">
+        <a-progress
+          :percent="syncPercent"
+          :status="syncStatus.phase === 'error' ? 'exception' : (syncRunning ? 'active' : 'success')"
+          size="small"
+        />
+        <div class="sync-log">
+          <div v-if="syncStatus.total">
+            已处理 {{ syncStatus.done }} / {{ syncStatus.total }}
+          </div>
+          <div>
+            ✅ 新增 {{ syncStatus.imported }} · ⏭ 跳过 {{ syncStatus.skipped }} · ❌ 失败 {{ syncStatus.failed }}
+          </div>
+          <div v-if="syncStatus.message" :style="{ color: syncStatus.phase === 'error' ? '#cf1322' : '#888' }">
+            {{ syncStatus.message }}
+          </div>
+        </div>
+      </div>
+
+      <div v-if="syncSettings.configured && syncSettings.last_result && syncSettings.last_result.error" style="margin-top: 12px">
+        <a-alert type="warning" show-icon :message="'上次同步失败：' + syncSettings.last_result.error" />
+      </div>
     </a-modal>
   </div>
 </template>
@@ -307,6 +379,126 @@ async function handleImport(file) {
   }
   return false // 阻止默认上传
 }
+
+// ─── iGPSPORT 自动同步 ──────────────────────────────────
+const syncModalOpen = ref(false)
+const syncSaving = ref(false)
+const syncSettings = ref({ configured: false, username: '', last_sync_at: null, last_result: {} })
+const syncForm = ref({ username: '', password: '' })
+const syncStatus = ref({ running: false, phase: 'idle', total: 0, done: 0, imported: 0, skipped: 0, failed: 0, message: '' })
+const syncRunning = computed(() => !!syncStatus.value.running)
+let syncTimer = null
+
+const syncPercent = computed(() => {
+  const s = syncStatus.value
+  if (s.running) {
+    if (s.total > 0) return Math.min(99, Math.round((s.done / s.total) * 100))
+    return 5
+  }
+  return s.phase === 'error' ? 100 : 100
+})
+
+const syncTooltip = computed(() => {
+  if (syncRunning.value) return '正在同步…'
+  if (syncSettings.value.configured) return `iGPSPORT 已配置（${syncSettings.value.username}）· 每 6 小时自动同步`
+  return '配置 iGPSPORT 账号后自动同步骑行记录'
+})
+
+function formatTime(iso) {
+  if (!iso) return ''
+  return iso.replace('T', ' ').slice(5, 16)
+}
+
+async function loadSyncSettings() {
+  try {
+    const { data } = await cyclingApi.getSyncSettings()
+    syncSettings.value = data
+    if (data.username) syncForm.value.username = data.username
+  } catch (e) { /* 忽略 */ }
+}
+
+async function pollSync() {
+  try {
+    const { data } = await cyclingApi.getSyncStatus()
+    const wasRunning = syncStatus.value.running
+    syncStatus.value = data
+    if (wasRunning && !data.running) {
+      clearInterval(syncTimer)
+      syncTimer = null
+      await loadSyncSettings()
+      if (data.phase !== 'error' && (data.imported > 0 || data.skipped > 0)) {
+        message.success(`同步完成：新增 ${data.imported} 条，跳过 ${data.skipped} 条`)
+        loadList()
+      }
+    }
+  } catch (e) { /* 忽略 */ }
+}
+
+function startPolling() {
+  if (syncTimer) return
+  syncTimer = setInterval(pollSync, 2000)
+}
+
+async function openSync() {
+  syncModalOpen.value = true
+  await loadSyncSettings()
+  const { data } = await cyclingApi.getSyncStatus().catch(() => ({ data: null }))
+  if (data) {
+    syncStatus.value = data
+    if (data.running) startPolling()
+  }
+}
+
+async function saveSyncAccount() {
+  const { username, password } = syncForm.value
+  if (!username || !password) { message.warning('请填写账号和密码'); return }
+  syncSaving.value = true
+  try {
+    await cyclingApi.saveSyncSettings({ username, password })
+    message.success('账号已加密保存')
+    syncForm.value.password = ''
+    await loadSyncSettings()
+  } catch (e) {
+    message.error(e.response?.data?.detail || '保存失败')
+  } finally {
+    syncSaving.value = false
+  }
+}
+
+async function startSync() {
+  if (!syncSettings.value.configured) {
+    message.warning('请先保存 iGPSPORT 账号')
+    return
+  }
+  try {
+    const { data } = await cyclingApi.runSync()
+    if (!data.ok) { message.warning(data.message || '无法开始同步'); return }
+    message.info('已开始同步，可关闭此窗口，后台继续执行')
+    syncStatus.value = { ...syncStatus.value, running: true, phase: 'login', message: '正在登录…' }
+    startPolling()
+  } catch (e) {
+    message.error(e.response?.data?.detail || '启动同步失败')
+  }
+}
+
+async function clearSyncAccount() {
+  try {
+    await cyclingApi.clearSyncSettings()
+    message.success('已清除')
+    syncForm.value = { username: '', password: '' }
+    await loadSyncSettings()
+  } catch (e) {
+    message.error('清除失败')
+  }
+}
+
+onMounted(() => {
+  loadSyncSettings()
+  cyclingApi.getSyncStatus().then(({ data }) => {
+    syncStatus.value = data
+    if (data.running) startPolling()
+  }).catch(() => {})
+})
 </script>
 
 <style scoped>
@@ -319,6 +511,18 @@ async function handleImport(file) {
 }
 .clickable-row { cursor: pointer; }
 .clickable-row:hover td { background: #f0f4ff !important; }
+.sync-state-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+}
+.sync-log {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.9;
+  color: #888;
+}
 
 @media (max-width: 767px) {
   .filter-bar > * { flex: 1 1 calc(50% - 6px); min-width: 0; }
