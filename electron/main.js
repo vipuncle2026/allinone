@@ -333,6 +333,33 @@ function showConnectError(url, detail) {
 
 // ── 窗口 ──────────────────────────────────────────────────────────
 
+/** 当前连接状态摘要（供标题栏 / 托盘 / 渲染进程使用） */
+function getConnectionInfo() {
+  if (isRemoteMode()) {
+    let host = String(config.serverUrl)
+    try {
+      const u = new URL(config.serverUrl)
+      host = u.host
+    } catch {}
+    return { mode: 'remote', serverUrl: config.serverUrl, host, label: `网络 · ${host}` }
+  }
+  return { mode: 'local', serverUrl: '', host: `127.0.0.1:${actualPort}`, label: '本机' }
+}
+
+/** 标题栏追加模式后缀（保留页面自身标题，如「看板 — 网络 192.168.1.10:8484」） */
+function applyModeTitle(win) {
+  const info = getConnectionInfo()
+  const suffix = info.mode === 'remote' ? ` — 网络 ${info.host}` : ' — 本机'
+  const handler = (e, title) => {
+    if (e) e.preventDefault()
+    const base = String(title || '').replace(/ — (网络 .*|本机)$/, '')
+    win.setTitle(base + suffix)
+  }
+  win.on('page-title-updated', handler)
+  win.webContents.on('did-finish-load', () => handler(null, win.getTitle()))
+  return () => win.removeListener('page-title-updated', handler)
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -356,6 +383,10 @@ function createWindow() {
   }
 
   loadContent(mainWindow)
+
+  // 标题栏显示当前是「网络」还是「本机」，保留页面自身标题
+  const clearTitleListener = applyModeTitle(mainWindow)
+  mainWindow.on('closed', () => clearTitleListener && clearTitleListener())
 
   // 主框架加载失败 → 连接失败页（错误页自身用 file:// 加载，不会递归）
   mainWindow.webContents.on('did-fail-load', (_e, errorCode, errorDesc, validatedURL, isMainFrame) => {
@@ -461,7 +492,8 @@ function createTray() {
   // macOS 状态栏图标必须是小尺寸（16x16 / 22x22@2x），使用 tray-icon 而非 256x256 的 icon
   const iconPath = path.join(__dirname, 'build', 'tray-icon.png')
   tray = new Tray(iconPath)
-  tray.setToolTip('All-in-One 个人管理系统')
+  const conn = getConnectionInfo()
+  tray.setToolTip(conn.mode === 'remote' ? `All-in-One · 网络 ${conn.host}` : 'All-in-One · 本机')
 
   const contextMenu = Menu.buildFromTemplate([
     {
@@ -474,9 +506,9 @@ function createTray() {
       },
     },
     { type: 'separator' },
-    isRemoteMode()
-      ? { label: `服务器: ${config.serverUrl}`, enabled: false }
-      : { label: `本地服务端口: ${actualPort}`, enabled: false },
+    conn.mode === 'remote'
+      ? { label: `● 网络模式：${conn.host}`, enabled: false }
+      : { label: `● 本机模式：端口 ${actualPort}`, enabled: false },
     {
       label: '连接设置…',
       click: openSettingsWindow,
@@ -606,6 +638,9 @@ ipcMain.handle('get-connection-settings', () => ({
   mode: isRemoteMode() ? 'remote' : 'local',
   localPort: actualPort,
 }))
+
+// 当前连接状态（渲染进程顶栏显示「网络 / 本机」徽标）
+ipcMain.handle('get-connection-mode', () => getConnectionInfo())
 
 // 连接设置：保存并重启生效
 ipcMain.handle('save-connection-settings', (_e, payload) => {

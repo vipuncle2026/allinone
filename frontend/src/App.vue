@@ -157,6 +157,23 @@
             </a-button>
           </a-tooltip>
           <div class="header-right">
+            <!-- 连接状态徽标（仅桌面客户端显示） -->
+            <a-tooltip
+              v-if="connMode"
+              :title="connMode.mode === 'remote'
+                ? `网络模式：已连接 ${connMode.host}，数据与 NAS / PWA 实时一致（点击修改连接设置）`
+                : `本机模式：后端端口 ${connMode.host}，数据只保存在这台 Mac，不与其他设备同步（点击修改连接设置）`"
+            >
+              <span
+                class="conn-badge"
+                :class="connMode.mode"
+                @click="openConnSettings"
+              >
+                <CloudServerOutlined v-if="connMode.mode === 'remote'" />
+                <DesktopOutlined v-else />
+                {{ connMode.mode === 'remote' ? `网络 · ${connMode.host}` : '本机' }}
+              </span>
+            </a-tooltip>
             <!-- 全局搜索 -->
             <a-tooltip title="搜索 (⌘K)">
               <a-button type="text" class="search-btn" @click="openSearch">
@@ -313,6 +330,7 @@ import {
   LogoutOutlined,
   TrophyOutlined,
   HeartOutlined,
+  DesktopOutlined,
 } from '@ant-design/icons-vue'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import './styles/variables.css'
@@ -455,6 +473,13 @@ watch(() => route.name, (name) => {
   }
 }, { immediate: true })
 
+// ── 连接状态（网络 / 本机，仅 Electron 客户端） ──
+const connMode = ref(null)
+
+function openConnSettings() {
+  if (window.electronAPI?.openSettings) window.electronAPI.openSettings()
+}
+
 // ── 用户菜单 ──
 const currentUser = computed(() => {
   try {
@@ -596,6 +621,12 @@ onMounted(() => {
   window.addEventListener('resize', onResize)
   onResize()
   window.addEventListener('keydown', onKeyDown)
+  // 桌面客户端：读取当前是网络模式还是本机模式
+  if (window.electronAPI?.getConnectionMode) {
+    window.electronAPI.getConnectionMode().then((info) => {
+      connMode.value = info
+    }).catch(() => {})
+  }
 })
 
 onUnmounted(() => {
@@ -822,6 +853,42 @@ onUnmounted(() => {
 }
 .user-name {
   margin-left: 4px;
+}
+/* 连接状态徽标 */
+.conn-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  margin-right: 6px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.conn-badge.remote {
+  color: #1677ff;
+  background: rgba(22, 119, 255, 0.1);
+  border: 1px solid rgba(22, 119, 255, 0.28);
+}
+.conn-badge.remote:hover {
+  background: rgba(22, 119, 255, 0.18);
+}
+.conn-badge.local {
+  color: var(--text-secondary);
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color, rgba(140, 140, 140, 0.28));
+}
+.conn-badge.local:hover {
+  color: var(--text-primary);
+}
+@media (max-width: 768px) {
+  .conn-badge { display: none; }
 }
 .today-date {
   color: var(--text-tertiary);

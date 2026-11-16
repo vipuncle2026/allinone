@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   /** 获取后端实际端口 */
   getApiPort: () => ipcRenderer.invoke('get-api-port'),
 
+  /** 当前连接状态：{ mode: 'remote'|'local', host, label, serverUrl } */
+  getConnectionMode: () => ipcRenderer.invoke('get-connection-mode'),
+
   /** 用系统浏览器打开外部链接 */
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
 
