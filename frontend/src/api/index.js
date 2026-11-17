@@ -1053,6 +1053,10 @@ export const healthApi = {
   statsAbnormal(memberId) {
     return http.get('/health/stats/abnormal', { params: { member_id: memberId } })
   },
+  /** 聚合统计：按年 / 按人（疾病次数、就诊、花费） */
+  statsAggregate(params = {}) {
+    return http.get('/health/stats/aggregate', { params })
+  },
 }
 
 // ─── 认证 API ─────────────────────────────────────────────

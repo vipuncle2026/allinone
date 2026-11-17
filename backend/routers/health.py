@@ -806,3 +806,224 @@ def stats_abnormal(member_id: int = Query(...), db: Session = Depends(get_db)):
         "checkup": _checkup_to_dict(last_checkup),
         "items": [_item_to_dict(i) for i in items],
     }
+
+
+# ─── 聚合统计：按年 / 按人（疾病、就诊、花费） ──────────────────
+
+def _year_of(date_str: Optional[str]) -> Optional[int]:
+    """从 'YYYY-MM-DD' / 'YYYY-MM' / 'YYYY' 中取年份"""
+    if not date_str:
+        return None
+    s = str(date_str).strip()
+    if len(s) < 4 or not s[:4].isdigit():
+        return None
+    return int(s[:4])
+
+
+@router.get("/stats/aggregate")
+def stats_aggregate(
+    member_id: Optional[int] = Query(None, description="成员ID，留空=全部成员"),
+    year: Optional[int] = Query(None, description="年份，留空=全部年份"),
+    db: Session = Depends(get_db),
+):
+    """健康统计聚合：KPI / 按年 / 按人 / 花费构成 / 疾病排行
+
+    数据口径：
+    - 体检：health_checkups.checkup_date + cost
+    - 就诊：disease_visits.visit_date
+    - 疾病：disease_records.diagnosed_date（新增按确诊年份）
+    - 花费：health_expenses.amount（明细账，按 expense_date）
+    """
+    members = db.query(FamilyMember).order_by(FamilyMember.id).all()
+    member_map = {m.id: m for m in members}
+
+    def _m_ok(mid) -> bool:
+        return member_id is None or mid == member_id
+
+    def _y_ok(date_str) -> bool:
+        if year is None:
+            return True
+        return _year_of(date_str) == year
+
+    checkups = [c for c in db.query(HealthCheckup).all() if _m_ok(c.member_id)]
+    visits = [v for v in db.query(DiseaseVisit).all() if _m_ok(v.member_id)]
+    diseases = [d for d in db.query(DiseaseRecord).all() if _m_ok(d.member_id)]
+    expenses = [e for e in db.query(HealthExpense).all() if _m_ok(e.member_id)]
+    abnormal_rows = [
+        i for i in db.query(HealthCheckupItem).all()
+        if _m_ok(i.member_id) and i.abnormal_flag and i.abnormal_flag != "正常"
+    ]
+
+    # ── 可用年份列表（用于前端下拉）──
+    years = set()
+    for c in checkups:
+        y = _year_of(c.checkup_date)
+        if y: years.add(y)
+    for v in visits:
+        y = _year_of(v.visit_date)
+        if y: years.add(y)
+    for e in expenses:
+        y = _year_of(e.expense_date)
+        if y: years.add(y)
+    for d in diseases:
+        y = _year_of(d.diagnosed_date)
+        if y: years.add(y)
+    years = sorted(years, reverse=True)
+
+    # ── KPI（受年份过滤）──
+    ck_sel = [c for c in checkups if _y_ok(c.checkup_date)]
+    vs_sel = [v for v in visits if _y_ok(v.visit_date)]
+    ex_sel = [e for e in expenses if _y_ok(e.expense_date)]
+    ds_sel = [d for d in diseases if _y_ok(d.diagnosed_date)]
+    ab_sel = [i for i in abnormal_rows if _y_ok(i.checkup_date)]
+
+    kpi = {
+        "members": len([m for m in members if _m_ok(m.id)]),
+        "checkup_count": len(ck_sel),
+        "checkup_cost": round(sum(c.cost or 0 for c in ck_sel), 2),
+        "visit_count": len(vs_sel),
+        "expense_total": round(sum(e.amount or 0 for e in ex_sel), 2),
+        "disease_active": len([d for d in diseases if (d.status or "") in ("治疗中", "慢性病")]),
+        "disease_new": len(ds_sel),
+        "disease_total": len(diseases),
+        "abnormal_count": len(ab_sel),
+    }
+
+    # ── 按年（忽略年份过滤，始终给全部年份对比）──
+    by_year = []
+    for y in years:
+        ck = [c for c in checkups if _year_of(c.checkup_date) == y]
+        vs = [v for v in visits if _year_of(v.visit_date) == y]
+        ex = [e for e in expenses if _year_of(e.expense_date) == y]
+        ds = [d for d in diseases if _year_of(d.diagnosed_date) == y]
+        ab = [i for i in abnormal_rows if _year_of(i.checkup_date) == y]
+        by_year.append({
+            "year": y,
+            "checkup_count": len(ck),
+            "checkup_cost": round(sum(c.cost or 0 for c in ck), 2),
+            "visit_count": len(vs),
+            "expense_total": round(sum(e.amount or 0 for e in ex), 2),
+            "disease_new": len(ds),
+            "abnormal_count": len(ab),
+        })
+    by_year.sort(key=lambda x: x["year"])
+
+    # ── 按人（忽略成员过滤，始终给全部成员对比；受年份过滤）──
+    by_member = []
+    for m in members:
+        ck = [c for c in ck_sel if c.member_id == m.id]
+        vs = [v for v in vs_sel if v.member_id == m.id]
+        ex = [e for e in ex_sel if e.member_id == m.id]
+        ds = [d for d in ds_sel if d.member_id == m.id]
+        ab = [i for i in ab_sel if i.member_id == m.id]
+        active = len([
+            d for d in diseases
+            if d.member_id == m.id and (d.status or "") in ("治疗中", "慢性病")
+        ])
+        by_member.append({
+            "member_id": m.id,
+            "name": m.name,
+            "relationship": m.relationship or "",
+            "checkup_count": len(ck),
+            "checkup_cost": round(sum(c.cost or 0 for c in ck), 2),
+            "visit_count": len(vs),
+            "expense_total": round(sum(e.amount or 0 for e in ex), 2),
+            "disease_new": len(ds),
+            "disease_active": active,
+            "abnormal_count": len(ab),
+        })
+    by_member.sort(key=lambda x: (-x["expense_total"], -x["visit_count"]))
+
+    # ── 花费构成（类别 + 挂载类型）──
+    cat_map, ref_map = {}, {}
+    for e in ex_sel:
+        cat = (e.category or "其他").strip() or "其他"
+        cat_map[cat] = cat_map.get(cat, 0) + (e.amount or 0)
+        ref = {"checkup": "体检", "visit": "就诊", "disease": "疾病"}.get(e.ref_type or "", "其他")
+        ref_map[ref] = ref_map.get(ref, 0) + (e.amount or 0)
+    expense_by_category = [
+        {"category": k, "amount": round(v, 2)}
+        for k, v in sorted(cat_map.items(), key=lambda x: -x[1])
+    ]
+    expense_by_ref = [
+        {"ref_type": k, "amount": round(v, 2)}
+        for k, v in sorted(ref_map.items(), key=lambda x: -x[1])
+    ]
+
+    # ── 月度趋势（受年份过滤；year 为空时用最近有数据的年份）──
+    trend_year = year or (years[0] if years else datetime.now().year)
+    month_cost = [0.0] * 12
+    month_visit = [0] * 12
+    for e in expenses:
+        if _year_of(e.expense_date) == trend_year and _y_ok(e.expense_date):
+            try:
+                mi = int(str(e.expense_date)[5:7]) - 1
+                if 0 <= mi < 12:
+                    month_cost[mi] += e.amount or 0
+            except Exception:
+                pass
+    for v in visits:
+        if _year_of(v.visit_date) == trend_year and _y_ok(v.visit_date):
+            try:
+                mi = int(str(v.visit_date)[5:7]) - 1
+                if 0 <= mi < 12:
+                    month_visit[mi] += 1
+            except Exception:
+                pass
+    monthly = [
+        {"month": i + 1, "amount": round(month_cost[i], 2), "visits": month_visit[i]}
+        for i in range(12)
+    ]
+
+    # ── 疾病排行：就诊次数 / 花费 / 最近就诊 ──
+    visit_by_disease, last_visit = {}, {}
+    for v in vs_sel:
+        visit_by_disease[v.disease_id] = visit_by_disease.get(v.disease_id, 0) + 1
+        if v.visit_date:
+            if v.disease_id not in last_visit or v.visit_date > last_visit[v.disease_id]:
+                last_visit[v.disease_id] = v.visit_date
+    cost_by_disease = {}
+    for e in ex_sel:
+        if (e.ref_type or "") == "disease":
+            cost_by_disease[e.ref_id] = cost_by_disease.get(e.ref_id, 0) + (e.amount or 0)
+
+    disease_rows = []
+    for d in ds_sel:
+        m = member_map.get(d.member_id)
+        disease_rows.append({
+            "disease_id": d.id,
+            "disease_name": d.disease_name,
+            "member_id": d.member_id,
+            "member_name": m.name if m else "",
+            "status": d.status or "",
+            "severity": d.severity or "",
+            "diagnosed_date": d.diagnosed_date or "",
+            "visit_count": visit_by_disease.get(d.id, 0),
+            "expense": round(cost_by_disease.get(d.id, 0), 2),
+            "last_visit": last_visit.get(d.id, ""),
+        })
+    disease_rows.sort(key=lambda x: (-x["visit_count"], -x["expense"], x["disease_name"]))
+
+    # ── 就诊按医院 Top（可选展示）──
+    hospital_map = {}
+    for v in vs_sel:
+        h = (v.hospital or "").strip() or "未填写"
+        hospital_map[h] = hospital_map.get(h, 0) + 1
+    hospitals = [
+        {"hospital": k, "count": v}
+        for k, v in sorted(hospital_map.items(), key=lambda x: -x[1])[:10]
+    ]
+
+    return {
+        "filters": {"member_id": member_id, "year": year},
+        "years": years,
+        "trend_year": trend_year,
+        "kpi": kpi,
+        "by_year": by_year,
+        "by_member": by_member,
+        "expense_by_category": expense_by_category,
+        "expense_by_ref": expense_by_ref,
+        "monthly": monthly,
+        "diseases": disease_rows,
+        "hospitals": hospitals,
+    }
